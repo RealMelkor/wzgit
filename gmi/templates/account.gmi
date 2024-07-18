@@ -1,0 +1,30 @@
+{{ template "header" "Gemigit" }}
+
+<h2>Account : {{ .Username }}</h2>
+{{if .Description}}<p>{{ .Description }}</p>{{end}}
+
+<p><a href="/account/{{.CSRF}}/addrepo">Create a new repository</a></p>
+<p><a href="/account/{{.CSRF}}/addgroup">Create a new user group</a></p>
+<p><a href="/account/{{.CSRF}}/addgroup">Create a new user group</a></p>
+<p><a href="/account/{{.CSRF}}/chdesc">Change your account description</a></p>
+<p><a href="/account/groups">View the groups you are in</a></p>
+<p><a href="/account/token">View authentication tokens settings</a></p>
+<p><a href="/account/otp">View 2FA settings</a></p>
+<p><a href="/account/{{.CSRF}}/chpasswd">Change your password</a></p>
+<p><a href="/account/{{.CSRF}}/disconnect">Disconnect</a></p>
+{{if .Sessions}}
+<p><a href="/account/{{.CSRF}}/disconnectall">Disconnect other sessions [{{.Sessions}}]</a></p>
+{{end}}
+
+<h3>Your repositories</h3>
+<ul>
+{{ range .Repositories -}} 
+<li><a href="/account/repo/{{.}}">{{.}}</a></li>
+{{ end }}
+</ul>
+<h3>Repositories</h3>
+<ul>
+{{ range .RepositoriesAccess -}} 
+<li><a href="/repo/{{.Username}}/{{.Name}}">{{.Name}} by {{.Username}}</a></li>
+{{ end -}}
+</ul>

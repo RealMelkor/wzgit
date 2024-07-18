@@ -1,0 +1,5 @@
+{{define "license"}}
+<h3>License</h3>
+
+<p>{{ . }}</p>
+{{end}}

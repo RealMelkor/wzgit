@@ -1,0 +1,9 @@
+=>. Go back
+
+# OTP
+{{if .Secret}}
+=>otp/{{.CSRF}}/rm Remove 2FA
+{{else}}
+=>otp/{{.CSRF}}/qr QR code
+=>otp/{{.CSRF}}/confirm Confirm
+{{end}}

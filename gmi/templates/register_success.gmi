@@ -1,0 +1,4 @@
+{{ template "header" "Gemigit" }}
+<h2>Your registration was completed successfully</h2>
+
+<a href="/">Login now</a>

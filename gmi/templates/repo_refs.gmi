@@ -1,0 +1,15 @@
+{{define "refs"}}
+<h3>Refs</h3>
+<h4>Branches</h4>
+<ul>
+{{ range .Branches -}}
+<li>{{.Name}}, {{.Info}}</li>
+{{ end }}
+</ul>
+<h4>Tags</h4>
+<ul>
+{{ range .Tags -}}
+<li>{{.Name}}, {{.Info}}</li>
+{{ end -}}
+</ul>
+{{end}}

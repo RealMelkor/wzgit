@@ -1,0 +1,19 @@
+=>. Go back
+
+> Account status : {{if .Secure}}Secure{{else}}Insecure{{end}}
+
+# Settings
+
+=>token/{{.CSRF}}/secure {{if .Secure}}Enable{{else}}Disable{{end}} password authentication for git operations {{if .Secure}}[Not recommended]{{else}}[Recommended]{{end}}
+
+# Tokens
+
+=>token/{{.CSRF}}/new Create new token
+=>token/{{.CSRF}}/new_ro Create new read-only token
+
+{{ range .Tokens -}}
+* {{ .Hint }}... expires on {{ .ExpirationFormat }} {{if .ReadOnly}}[Read Only]{{end}}
+=>token/{{$.CSRF}}/delete/{{.ID}} Delete
+=>token/{{$.CSRF}}/renew/{{.ID}} Renew
+
+{{ end -}}

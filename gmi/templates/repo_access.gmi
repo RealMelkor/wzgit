@@ -1,0 +1,30 @@
+=>. Go back
+
+# {{ .Repo }}
+
+=>access/{{.CSRF}}/add Add user
+=>access/{{.CSRF}}/addg Add group
+
+## Collaborators
+
+{{ range .Collaborators -}}
+* {{ .Name }} - Privilege : {{.Privilege | AccessPrivilege}}
+{{if $.Owner -}}
+=>access/{{.Name}}/{{$.CSRF}}/first {{.Privilege | AccessFirst}}
+=>access/{{.Name}}/{{$.CSRF}}/second {{.Privilege | AccessSecond}}
+=>access/{{.Name}}/{{$.CSRF}}/kick Remove
+
+{{end -}}
+{{end -}}
+
+## Groups
+
+{{ range .Groups -}}
+* {{ .Name }} - Privilege : {{.Privilege | AccessPrivilege}}
+{{if $.Owner -}}
+=>access/{{.Name}}/g/{{$.CSRF}}/first {{.Privilege | AccessFirst}}
+=>access/{{.Name}}/g/{{$.CSRF}}/second {{.Privilege | AccessSecond}}
+=>access/{{.Name}}/g/{{$.CSRF}}/kick Remove
+
+{{end -}}
+{{end -}}

@@ -1,0 +1,9 @@
+{{define "files"}}
+<h2>Files</h2>
+
+<ul>
+{{ range . -}}
+<li><a href="files/{{.Hash}}">{{.Info}}</a></li>
+{{end}}
+</ul>
+{{end}}

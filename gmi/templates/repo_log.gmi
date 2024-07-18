@@ -1,0 +1,12 @@
+{{define "log"}}
+<h3>Commits</h3>
+
+<ul>
+{{ range . -}}
+<li>
+<p>{{ .Info }}</p>
+<p>{{ .Message }}</p>
+</li>
+{{ end }}
+</ul>
+{{ end }}

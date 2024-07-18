@@ -1,0 +1,31 @@
+=>/account/ Go back
+
+# {{ .Repo }}
+{{if .Description -}}
+> {{ .Description }}
+{{end -}}
+{{- if .HasHTTP -}}
+> git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/{{ .User }}/{{ .Repo }}
+{{- end -}}
+{{- if and .HasHTTP .HasSSH }}
+{{ end -}}
+{{- if .HasSSH -}}
+> git clone ssh://{{.LoggedAs}}{{ .SshDomain }}/{{ .User }}/{{ .Repo }}
+{{- end }}
+
+=>/account/repo/{{.Repo}}/access Collaborators
+=>/account/repo/{{.Repo}}/{{.CSRF}}/chname Change repository name
+=>/account/repo/{{.Repo}}/{{.CSRF}}/chdesc Change repository description
+=>/account/repo/{{.Repo}}/{{.CSRF}}/togglepublic Make the repository {{if .Public}}private{{else}}public {{end }}
+=>/account/repo/{{.Repo}}/{{.CSRF}}/delrepo Delete repository
+
+=>/account/repo/{{.Repo}} Log
+=>/account/repo/{{.Repo}}/files Files
+=>/account/repo/{{.Repo}}/refs Refs
+{{ if .HasLicense -}}
+=>/account/repo/{{.Repo}}/license License
+{{ end -}}
+{{ if .HasReadme -}}
+=>/account/repo/{{.Repo}}/readme Readme
+{{ end }}
+{{if .Content -}} {{ .Content }} {{ else }} Empty repository {{ end }}

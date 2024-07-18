@@ -1,0 +1,34 @@
+{{ template "header" "Gemigit" }}
+<p><a href="/{{if .Public}}repo{{else}}account/{{end}}">Public repositories</a></p>
+
+<h2>{{ .Repo }} by {{ .User }}</h2>
+<a href="/repo/{{.User}}">View account</a>
+{{if .Description -}}
+<p>{{ .Description }}</p>
+{{end -}}
+{{- if .HasHTTP -}}
+<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/{{ .User }}/{{ .Repo }}</p>
+{{- end -}}
+{{- if and .HasHTTP .HasSSH }}
+{{ end -}}
+{{- if .HasSSH -}}
+<p>git clone ssh://{{ .LoggedAs }}{{ .SshDomain }}/{{ .User }}/{{ .Repo }}</p>
+{{- end }}
+
+<p><a href="/repo/{{.User}}/{{.Repo}}">Log</a></p>
+<p><a href="/repo/{{.User}}/{{.Repo}}/files">Files</a></p>
+<p><a href="/repo/{{.User}}/{{.Repo}}/refs">Refs</a></p>
+{{ if .HasLicense -}}
+<p><a href="/repo/{{.User}}/{{.Repo}}/license">License</a></p>
+{{ end -}}
+{{ if .HasReadme -}}
+<p><a href="/repo/{{.User}}/{{.Repo}}/readme">Readme</a></p>
+{{ end }}
+{{if not .Content}}
+<p>Empty repository</p>
+{{ end }}
+{{if eq .Page "license"}}{{ template "license" .Content }}{{end}}
+{{if eq .Page "log"}}{{ template "log" .Content }}{{end}}
+{{if eq .Page "refs"}}{{ template "refs" .Content }}{{end}}
+{{if eq .Page "files"}}{{ template "files" .Content }}{{end}}
+{{if eq .Page "readme"}}{{ template "readme" .Content }}{{end}}

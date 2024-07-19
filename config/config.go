@@ -18,7 +18,12 @@ type Config struct {
 		StaticDirectory	string
 	}
 	Web struct {
+		Domain		string `default:"localhost"`
 		Host		string `default:":8080"`
+	}
+	Catpcha struct {
+		Enabled		bool
+		Length		int
 	}
 	Git struct {
 		Http struct {

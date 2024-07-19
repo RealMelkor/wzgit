@@ -1,12 +1,13 @@
-package gmi
+package web
 
 import (
 	"crypto/rand"
 	"errors"
 	"encoding/base64"
-
-	"gemigit/auth"
 	"net/http"
+	"gemigit/auth"
+	"gemigit/config"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,7 +27,7 @@ func Register(c echo.Context) error {
 	}
 	err := auth.Register(name, password, c.RealIP())
 	if err != nil { return err }
-	data, err := execTemplate("register_success.gmi", nil)
+	data, err := execTemplate("register_success.html", nil)
 	if err != nil { return err }
 	return c.HTML(http.StatusOK, data)
 }
@@ -42,7 +43,7 @@ func Login(c echo.Context) error {
 	}
 	if err != nil { return c.String(http.StatusBadRequest, err.Error()) }
 	cookie := http.Cookie{
-		Domain: "127.0.0.1",
+		Domain: config.Cfg.Web.Domain,
 		Name: "auth_id",
 		Value: sig,
 	}

@@ -1,9 +1,9 @@
-<h1>{{ .Title }}</h1>
+{{ template "header" "Gemigit" }}
 
 {{ if .Connected -}}
 <p><a href="/account">Account page</a></p>
 {{ else -}}
-<p><a href="/login">Login</a></p>
+<h3>Login</h3>
 <form action="/login" method="POST">
 	<table>
 		<tr>
@@ -14,6 +14,7 @@
 			<th>Password</th>
 			<td><input class="field" type="password" name="password" required="required"></td>
 		</tr>
+{{if .Captcha}}
 		<tr>
 			<th></th>
 			<td class="captcha"><img loading="lazy" src="/captcha" alt="captcha"></td>
@@ -22,10 +23,12 @@
 			<th>Captcha</th>
 			<td><input type="text" id="captcha" name="captcha" required="required"></td>
 		</tr>
+{{end}}
 	</table>
 	<input class="btn" type="submit" value="Login">
 </form>
-{{ if .Registration -}}
+{{if .Registration}}
+<h3>Register</h3>
 <form action="/register" method="POST">
 	<table>
 		<tr>
@@ -40,6 +43,7 @@
 			<th>Confirm Password</th>
 			<td><input class="field" type="password" name="password_confirm" required="required"></td>
 		</tr>
+{{if .Captcha}}
 		<tr>
 			<th></th>
 			<td class="captcha"><img loading="lazy" src="/captcha" alt="captcha"></td>
@@ -48,12 +52,12 @@
 			<th>Captcha</th>
 			<td><input type="text" id="captcha" name="captcha" required="required"></td>
 		</tr>
+{{end}}
 	</table>
 	<input class="btn" type="submit" value="Login">
 </form>
-
-{{ end -}}
-{{ end -}}
-{{ if .Public -}}
+{{end}}
+{{end}}
+{{if .Public}}
 <p><a href="/repo">Public repositories</a></p>
-{{ end }}
+{{end}}

@@ -14,14 +14,9 @@ import (
 	"gemigit/httpgit"
 	"gemigit/sshgit"
 	"gemigit/repo"
-	"gemigit/gmi"
 	"gemigit/web"
 	//"gemigit/csrf"
-	_ "embed"
 )
-
-//go:embed gmi/templates/robots.txt
-var robots string
 
 func main() {
 
@@ -144,7 +139,7 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	if err := gmi.LoadTemplate(); err != nil {
+	if err := web.LoadTemplate(); err != nil {
 		log.Fatalln(err.Error())
 	}
 

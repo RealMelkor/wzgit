@@ -1,10 +1,12 @@
-package gmi
+package web
 
 import (
 	"time"
+	"net/http"
         "gemigit/db"
         "gemigit/repo"
-	"net/http"
+        "gemigit/config"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -52,7 +54,7 @@ func Disconnect(c echo.Context, user db.User) error {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 	cookie := http.Cookie{
-		Domain: "127.0.0.1",
+		Domain: config.Cfg.Web.Domain,
 		Name: "auth_id",
 		Expires: time.Unix(0, 0),
 		Value: "",

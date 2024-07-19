@@ -1,4 +1,4 @@
-package gmi
+package web
 
 import (
 	"bytes"
@@ -60,13 +60,13 @@ var templates *template.Template
 
 func LoadTemplate() error {
 	var err error
-	templates = template.New("gmi")
+	templates = template.New("html")
 	t := templates.Funcs(template.FuncMap {
 		"AccessFirst": accessFirstOption,
 		"AccessSecond": accessSecondOption,
 		"AccessPrivilege": privilegeToString,
 	})
-	_, err = t.ParseFS(templatesFS, "templates/*.gmi")
+	_, err = t.ParseFS(templatesFS, "templates/*.html")
 	if err != nil {
 		return err
 	}
@@ -92,17 +92,19 @@ func showRepoFile(user string, reponame string, file string) (string, error) {
 
 func ShowIndex(c echo.Context, isConnected bool) (error) {
 	data := struct {
-		Title string
-		Registration bool
-		Connected bool
-		Public bool
+		Title		string
+		Registration	bool
+		Connected	bool
+		Public		bool
+		Captcha		bool
 	}{
 		Title: config.Cfg.Title,
 		Registration: config.Cfg.Users.Registration,
 		Connected: isConnected,
 		Public: isConnected || config.Cfg.Git.Public,
+		Captcha: config.Cfg.Catpcha.Enabled,
 	}
-	return execT(c, "index.gmi", data)
+	return execT(c, "index.html", data)
 }
 
 func ShowAccount(c echo.Context, user db.User) (error) {
@@ -140,7 +142,7 @@ func ShowAccount(c echo.Context, user db.User) (error) {
 		Sessions: sessions,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "account.gmi", data)
+	return execT(c, "account.html", data)
 }
 
 func ShowGroups(c echo.Context, user db.User) (error) {
@@ -155,7 +157,7 @@ func ShowGroups(c echo.Context, user db.User) (error) {
 	}{
 		Groups: groups,
 	}
-	return execT(c, "group_list.gmi", data)
+	return execT(c, "group_list.html", data)
 }
 
 func ShowMembers(c echo.Context, user db.User) (error) {
@@ -209,7 +211,7 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 		Description: desc,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "group.gmi", data)
+	return execT(c, "group.html", data)
 }
 
 func getRepo(c echo.Context, user db.User, owner bool) (string, string, error) {
@@ -444,7 +446,7 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		Description: desc,
 		Repo: name,
 		Public: public,
-		HasReadme: hasFile(name, author, "README.gmi") ||
+		HasReadme: hasFile(name, author, "README.html") ||
 			   hasFile(name, author, "README.md") ||
 			   hasFile(name, author, "README"),
 		HasLicense: hasFile(name, author, "LICENSE"),
@@ -453,9 +455,9 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		Page: contentType,
 	}
 	if owner {
-		return execT(c, "repo.gmi", data)
+		return execT(c, "repo.html", data)
 	}
-	return execT(c, "public_repo.gmi", data)
+	return execT(c, "public_repo.html", data)
 }
 
 func PublicList(c echo.Context) (error) {
@@ -465,7 +467,7 @@ func PublicList(c echo.Context) (error) {
 		return c.String(http.StatusInternalServerError,
 				   "Internal error, " + err.Error())
 	}
-	return execT(c, "public_list.gmi", repos)
+	return execT(c, "public_list.html", repos)
 }
 
 func PublicAccount(c echo.Context) error {
@@ -487,7 +489,7 @@ func PublicAccount(c echo.Context) error {
 		user.Description,
 		repos,
 	}
-	return execT(c, "public_user.gmi", data)
+	return execT(c, "public_user.html", data)
 }
 
 func ShowAccess(c echo.Context, user db.User) error {
@@ -516,7 +518,7 @@ func ShowAccess(c echo.Context, user db.User) error {
 		Owner: true,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "repo_access.gmi", data)
+	return execT(c, "repo_access.html", data)
 }
 
 func ShowOTP(c echo.Context, user db.User) error {
@@ -527,7 +529,7 @@ func ShowOTP(c echo.Context, user db.User) error {
 		Secret: user.Secret != "",
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "otp.gmi", data)
+	return execT(c, "otp.html", data)
 }
 
 func ShowTokens(c echo.Context, user db.User) error {
@@ -547,5 +549,5 @@ func ShowTokens(c echo.Context, user db.User) error {
 		Secure: user.SecureGit,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "token.gmi", data)
+	return execT(c, "token.html", data)
 }

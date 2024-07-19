@@ -1,4 +1,4 @@
-package gmi
+package web
 
 import (
 	"github.com/gomarkdown/markdown"

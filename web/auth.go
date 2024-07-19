@@ -27,9 +27,7 @@ func Register(c echo.Context) error {
 	}
 	err := auth.Register(name, password, c.RealIP())
 	if err != nil { return err }
-	data, err := execTemplate("register_success.html", nil)
-	if err != nil { return err }
-	return c.HTML(http.StatusOK, data)
+	return render(c, "register_success.html", nil)
 }
 
 func Login(c echo.Context) error {

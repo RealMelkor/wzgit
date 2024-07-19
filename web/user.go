@@ -50,9 +50,7 @@ func ChangePassword(c echo.Context, user db.User) error {
 }
 
 func Disconnect(c echo.Context, user db.User) error {
-	if err := user.Disconnect(); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err := user.Disconnect(); err != nil { return err }
 	cookie := http.Cookie{
 		Domain: config.Cfg.Web.Domain,
 		Name: "auth_id",

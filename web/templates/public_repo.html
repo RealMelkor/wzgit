@@ -1,8 +1,7 @@
-{{ template "header" "Gemigit" }}
 <p><a href="/{{if .Public}}repo{{else}}account/{{end}}">Public repositories</a></p>
 
 <h2>{{ .Repo }} by {{ .User }}</h2>
-<a href="/repo/{{.User}}">View account</a>
+<p><a href="/repo/{{.User}}">View account</a></p>
 {{if .Description -}}
 <p>{{ .Description }}</p>
 {{end -}}

@@ -1,0 +1,32 @@
+body {
+	padding: 0;
+	background-color: #1e1e1e;
+}
+
+p, li {
+	color: #eeeeee;
+}
+
+a {
+	color: inherit;
+}
+
+h1 {
+	color: #af5f00;
+}
+
+h2 {
+	color: #26a269;
+}
+
+h3 {
+	color: #c01c28;
+}
+
+#main {
+	padding: 20px;
+}
+
+.license {
+	width: 700px;
+}

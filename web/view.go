@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"gemigit/access"
@@ -25,28 +24,6 @@ import (
 
 //go:embed templates/*
 var templatesFS embed.FS
-
-func execT(c echo.Context, template string, data interface{}) error {
-	t := templates.Lookup(template)
-	var b bytes.Buffer
-	err := t.Execute(&b, data)
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	return c.HTML(http.StatusOK, b.String())
-}
-
-func execTemplate(template string, data interface{}) (string, error) {
-	t := templates.Lookup(template)
-	var b bytes.Buffer
-	err := t.Execute(&b, data)
-	if err != nil {
-		log.Println(err.Error())
-		return "", err
-	}
-	return strings.TrimRight(b.String(), "\n"), nil
-}
 
 const (
 	pageLog = iota
@@ -104,7 +81,7 @@ func ShowIndex(c echo.Context, isConnected bool) (error) {
 		Public: isConnected || config.Cfg.Git.Public,
 		Captcha: config.Cfg.Catpcha.Enabled,
 	}
-	return execT(c, "index.html", data)
+	return render(c, "index.html", data)
 }
 
 func ShowAccount(c echo.Context, user db.User) (error) {
@@ -142,7 +119,7 @@ func ShowAccount(c echo.Context, user db.User) (error) {
 		Sessions: sessions,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "account.html", data)
+	return render(c, "account.html", data)
 }
 
 func ShowGroups(c echo.Context, user db.User) (error) {
@@ -157,7 +134,7 @@ func ShowGroups(c echo.Context, user db.User) (error) {
 	}{
 		Groups: groups,
 	}
-	return execT(c, "group_list.html", data)
+	return render(c, "group_list.html", data)
 }
 
 func ShowMembers(c echo.Context, user db.User) (error) {
@@ -211,7 +188,7 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 		Description: desc,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "group.html", data)
+	return render(c, "group.html", data)
 }
 
 func getRepo(c echo.Context, user db.User, owner bool) (string, string, error) {
@@ -455,9 +432,9 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		Page: contentType,
 	}
 	if owner {
-		return execT(c, "repo.html", data)
+		return render(c, "repo.html", data)
 	}
-	return execT(c, "public_repo.html", data)
+	return render(c, "public_repo.html", data)
 }
 
 func PublicList(c echo.Context) (error) {
@@ -467,7 +444,7 @@ func PublicList(c echo.Context) (error) {
 		return c.String(http.StatusInternalServerError,
 				   "Internal error, " + err.Error())
 	}
-	return execT(c, "public_list.html", repos)
+	return render(c, "public_list.html", repos)
 }
 
 func PublicAccount(c echo.Context) error {
@@ -489,7 +466,7 @@ func PublicAccount(c echo.Context) error {
 		user.Description,
 		repos,
 	}
-	return execT(c, "public_user.html", data)
+	return render(c, "public_user.html", data)
 }
 
 func ShowAccess(c echo.Context, user db.User) error {
@@ -518,7 +495,7 @@ func ShowAccess(c echo.Context, user db.User) error {
 		Owner: true,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "repo_access.html", data)
+	return render(c, "repo_access.html", data)
 }
 
 func ShowOTP(c echo.Context, user db.User) error {
@@ -529,7 +506,7 @@ func ShowOTP(c echo.Context, user db.User) error {
 		Secret: user.Secret != "",
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "otp.html", data)
+	return render(c, "otp.html", data)
 }
 
 func ShowTokens(c echo.Context, user db.User) error {
@@ -549,5 +526,5 @@ func ShowTokens(c echo.Context, user db.User) error {
 		Secure: user.SecureGit,
 		CSRF: csrf.Token(user.Signature),
 	}
-	return execT(c, "token.html", data)
+	return render(c, "token.html", data)
 }

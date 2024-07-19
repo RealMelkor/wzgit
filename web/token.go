@@ -21,7 +21,7 @@ func CreateToken(c echo.Context, user db.User, readOnly bool) error {
 	}{
 		Token: token,
 	}
-	return execT(c, "token_new.gmi", data)
+	return render(c, "token_new.gmi", data)
 }
 
 func CreateWriteToken(c echo.Context, user db.User) error {

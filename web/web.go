@@ -1,14 +1,13 @@
 package web
 
 import (
-	_ "embed"
+	"embed"
 	"errors"
 	"net/http"
 	"io"
-	"log"
 
         "github.com/tdewolff/minify/v2"
-        //"github.com/tdewolff/minify/v2/css"
+        "github.com/tdewolff/minify/v2/css"
         "github.com/tdewolff/minify/v2/html"
 	"github.com/labstack/echo/v4"
 
@@ -17,8 +16,47 @@ import (
 	"gemigit/csrf"
 )
 
-//go:embed templates/robots.txt
-var robots string
+//go:embed static/*
+var staticFS embed.FS
+
+//go:embed css/*
+var cssFS embed.FS
+
+func static(path string) func(echo.Context) error {
+	return func(c echo.Context) error {
+		f, err := staticFS.Open("static/" + path)
+		if err != nil {
+			return c.String(http.StatusNotFound, err.Error())
+		}
+		_, err = io.Copy(c.Response().Writer, f)
+		return err
+	}
+}
+
+var cachedCSS = map[string][]byte{}
+func staticCSS(c echo.Context) error {
+	name := c.Param("path")
+	if data, ok := cachedCSS[name]; ok {
+		return c.Blob(http.StatusOK, "text/css", data)
+	}
+	data, err := cssFS.ReadFile("css/" + c.Param("path"))
+	if err != nil {
+		return c.String(http.StatusNotFound, err.Error())
+	}
+	data, err = minifyCSS(data)
+	if err != nil { return err }
+	cachedCSS[name] = data
+	c.Response().Header().Add("Content-Type", "text/css")
+	return c.Blob(http.StatusOK, "text/css", data)
+}
+
+func minifyCSS(in []byte) ([]byte, error) {
+	m := minify.New()
+	m.AddFunc("text/css", css.Minify)
+	res, err := m.Bytes("text/css", in)
+	if err != nil { return nil, err }
+	return res, nil
+}
 
 func minifyHTML(w io.Writer) io.WriteCloser {
 	m := minify.New()
@@ -26,11 +64,20 @@ func minifyHTML(w io.Writer) io.WriteCloser {
 	return m.Writer("text/html", w)
 }
 
-func render(template string, data any, c echo.Context) error {
+func render(c echo.Context, template string, data any) error {
         c.Response().WriteHeader(http.StatusOK)
         c.Response().Header().Add("Content-Type", "text/html; charset=utf-8")
         w := minifyHTML(c.Response().Writer)
-        err := templates.Lookup(template).Execute(w, data)
+	header := struct {
+		Title	string
+	}{
+		Title:	config.Cfg.Title,
+	}
+        err := templates.Lookup("header").Execute(w, header)
+        if err != nil { return err }
+        err = templates.Lookup(template).Execute(w, data)
+        if err != nil { return err }
+        err = templates.Lookup("footer").Execute(w, nil)
         if err != nil { return err }
         w.Close()
         return nil
@@ -71,10 +118,6 @@ func acc(f func(echo.Context, db.User) error) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		user, err := getUser(c)
 		if err != nil {
-			//return c.String(http.StatusBadRequest, err.Error())
-			c.Logger().Info(err)
-			log.Println(err)
-			//c.Logger().Info("test")
 			return c.Redirect(http.StatusFound, "/")
 		}
 		if err := f(c, user); err != nil {
@@ -87,30 +130,8 @@ func acc(f func(echo.Context, db.User) error) func(c echo.Context) error {
 
 func Listen() {
 	e := echo.New()
-	e.GET("/robots.txt", func(c echo.Context) error {
-		return c.String(http.StatusOK, robots)
-	})
-/*
-	if config.Cfg.Gemini.StaticDirectory != "" {
-		g.Static("/static", config.Cfg.Gemini.StaticDirectory)
-	}
-
-	//passAuth := gig.PassAuth(csrf.Handle)
-
-	secure := g.Group("/account/", passAuth)
-	g := e.Group("/account/",
-		func(next echo.HandlerFunc) echo.HandlerFunc {
-			
-		})
-
-	echo.Mid
-	g.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if username == "joe" && password == "secret" {
-			return true, nil
-		}
-		return false, nil
-	}))
-	*/
+	e.GET("/robots.txt", static("robots.txt"))
+	e.GET("/css/:path", staticCSS)
 
 	e.GET("/account", acc(ShowAccount))
 	// groups management

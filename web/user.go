@@ -20,7 +20,7 @@ func ChangeDesc(c echo.Context, user db.User) error {
 }
 
 func AddRepo(c echo.Context, user db.User) error {
-	name := c.QueryString()
+	name := c.Request().PostFormValue("repo")
 	if err := user.CreateRepo(name);
 	   err != nil {
 		return c.String(http.StatusBadRequest,
@@ -31,14 +31,6 @@ func AddRepo(c echo.Context, user db.User) error {
 				   err.Error())
 	}
 	return redirect(c, "repo/" + name)
-}
-
-func AddGroup(c echo.Context, user db.User) error {
-	name := c.QueryString()
-	if err := user.CreateGroup(name); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	return redirect(c, "groups/" + name)
 }
 
 func ChangePassword(c echo.Context, user db.User) error {

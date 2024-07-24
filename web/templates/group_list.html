@@ -1,7 +1,11 @@
-=>. Go back
+<h2>Groups</h2>
 
-# Groups
+<form action="/account/{{.CSRF}}/addgroup" method="POST">
+	<span style="white-space: nowrap">Create a new group:</span>
+	<input class="field" type="text" name="group" required="required">
+	<input class="btn" type="submit" value="Create">
+</form>
 
 {{ range .Groups -}}
-=>groups/{{.Name}} {{ .Name }} {{if .Description }} - {{ .Description }} {{end }}
+<p><a href="/account/groups/{{.Name}}">{{ .Name }} {{if .Description }} - {{ .Description }} {{end }}</a></p>
 {{ end -}}

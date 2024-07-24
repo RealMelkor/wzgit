@@ -131,8 +131,10 @@ func ShowGroups(c echo.Context, user db.User) (error) {
 	}
 	data := struct {
 		Groups []db.Group
+		CSRF string
 	}{
 		Groups: groups,
+		CSRF: csrf.Token(user.Signature),
 	}
 	return render(c, "group_list.html", data)
 }

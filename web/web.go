@@ -68,12 +68,17 @@ func render(c echo.Context, template string, data any) error {
         c.Response().WriteHeader(http.StatusOK)
         c.Response().Header().Add("Content-Type", "text/html; charset=utf-8")
         w := minifyHTML(c.Response().Writer)
+	user, err := getUser(c)
 	header := struct {
-		Title	string
+		Title		string
+		IsConnected	bool
+		User		db.User
 	}{
-		Title:	config.Cfg.Title,
+		Title:		config.Cfg.Title,
+		IsConnected:	err == nil,
+		User:		user,
 	}
-        err := templates.Lookup("header").Execute(w, header)
+        err = templates.Lookup("header").Execute(w, header)
         if err != nil { return err }
         err = templates.Lookup(template).Execute(w, data)
         if err != nil { return err }
@@ -182,8 +187,8 @@ func Listen() {
 
 	// user page
 	e.GET("/account/:csrf/chdesc", acc(ChangeDesc))
-	e.GET("/account/:csrf/addrepo", acc(AddRepo))
-	e.GET("/account/:csrf/addgroup", acc(AddGroup))
+	e.POST("/account/:csrf/addrepo", acc(AddRepo))
+	e.POST("/account/:csrf/addgroup", acc(AddGroup))
 	e.GET("/account/:csrf/disconnect", acc(Disconnect))
 	e.GET("/account/:csrf/disconnectall", acc(DisconnectAll))
 	if !config.Cfg.Ldap.Enabled {

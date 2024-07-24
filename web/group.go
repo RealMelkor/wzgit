@@ -41,12 +41,16 @@ func SetGroupDesc(c echo.Context, user db.User) error {
 	return groupRedirect(c)
 }
 
+func AddGroup(c echo.Context, user db.User) error {
+	name := c.Request().PostFormValue("group")
+	if err := user.CreateGroup(name); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+	return redirect(c, "groups/" + name)
+}
+
 func DeleteGroup(c echo.Context, user db.User) error {
 	name := c.QueryString()
-	/*if name == "" {
-		return c.String(http.StatusInput,
-				   "To confirm type the group name")
-	}*/
 	if name != c.Param("group") {
 		return groupRedirect(c)
 	}

@@ -10,7 +10,12 @@
 		<link rel="icon" type="image/png" href="/static/favicon.png">
 	</head>
 	<body>
-		<h1><a href="/">{{.Title}}</a></h1>
+		<div class="header">
+			<h1><a href="/">{{.Title}}</a></h1>
+			{{if .IsConnected}}
+			<p><a href="/account">{{.User.Name}}</a></p>
+			{{end}}
+		</div>
 		<div id="main">
 		<br>
 {{end}}

@@ -1,8 +1,7 @@
 <h2>Account : {{ .Username }}</h2>
 {{if .Description}}<p>{{ .Description }}</p>{{end}}
 
-<p><a href="/account/{{.CSRF}}/addrepo">Create a new repository</a></p>
-<p><a href="/account/{{.CSRF}}/addgroup">Create a new user group</a></p>
+
 <p><a href="/account/{{.CSRF}}/addgroup">Create a new user group</a></p>
 <p><a href="/account/{{.CSRF}}/chdesc">Change your account description</a></p>
 <p><a href="/account/groups">View the groups you are in</a></p>
@@ -15,6 +14,11 @@
 {{end}}
 
 <h3>Your repositories</h3>
+<form action="/account/{{.CSRF}}/addrepo" method="POST">
+	<span style="white-space: nowrap">Create a new repository:</span>
+	<input class="field" type="text" name="repo" required="required">
+	<input class="btn" type="submit" value="Create">
+</form>
 <ul>
 {{ range .Repositories -}} 
 <li><a href="/account/repo/{{.}}">{{.}}</a></li>

@@ -35,6 +35,8 @@ func randomString(n int) string {
 }
 
 func New(user db.User) error {
+	_, ok := tokens[user.Signature]
+	if ok { return nil }
 	token := randomString(16)
 	tokens[user.Signature] = token
 	return nil
@@ -48,12 +50,13 @@ func Verify(user db.User, csrf string) error {
 	return nil
 }
 
-func Handle(user db.User, token string) error {
+func Handle(user db.User, token string, renew bool) error {
 	if token == "" {
 		New(user)
 	} else if err := Verify(user, token); err != nil {
 		return err
 	}
+	if renew { delete(tokens, user.Signature) }
 	return nil
 }
 

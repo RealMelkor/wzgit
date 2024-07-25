@@ -106,7 +106,8 @@ func getUser(c echo.Context) (db.User, error) {
 	if !exist {
 		return db.User{}, errors.New("user not found")
 	}
-	if err := csrf.Handle(user, c.Param("csrf")); err != nil {
+	renew := c.Request().Method == "POST"
+	if err := csrf.Handle(user, c.Param("csrf"), renew); err != nil {
 		return db.User{}, err
 	}
 	return user, nil
@@ -142,12 +143,13 @@ func Listen() {
 	// groups management
 	e.GET("/account/groups", acc(ShowGroups))
 	e.GET("/account/groups/:group", acc(ShowMembers))
-	e.GET("groups/:group/:csrf/desc", acc(SetGroupDesc))
-	e.GET("groups/:group/:csrf/desc", acc(SetGroupDesc))
-	e.GET("groups/:group/:csrf/add", acc(AddToGroup))
-	e.GET("groups/:group/:csrf/leave", acc(LeaveGroup))
-	e.GET("groups/:group/:csrf/delete", acc(DeleteGroup))
-	e.GET("groups/:group/:csrf/kick/:user", acc(RmFromGroup))
+	e.POST("/account/groups/:csrf/addgroup", acc(AddGroup))
+	e.GET("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
+	e.GET("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
+	e.GET("/account/groups/:group/:csrf/add", acc(AddToGroup))
+	e.GET("/account/groups/:group/:csrf/leave", acc(LeaveGroup))
+	e.GET("/account/groups/:group/:csrf/delete", acc(DeleteGroup))
+	e.GET("/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
 
 	// repository settings
 	e.GET("repo/:repo/*", acc(RepoFile))
@@ -188,7 +190,6 @@ func Listen() {
 	// user page
 	e.GET("/account/:csrf/chdesc", acc(ChangeDesc))
 	e.POST("/account/:csrf/addrepo", acc(AddRepo))
-	e.POST("/account/:csrf/addgroup", acc(AddGroup))
 	e.GET("/account/:csrf/disconnect", acc(Disconnect))
 	e.GET("/account/:csrf/disconnectall", acc(DisconnectAll))
 	if !config.Cfg.Ldap.Enabled {
@@ -197,8 +198,8 @@ func Listen() {
 	// otp
 	e.GET("/account/otp", acc(ShowOTP))
 	e.GET("/account/otp/:csrf/qr", acc(CreateTOTP))
-	e.GET("/account/otp/:csrf/confirm", acc(ConfirmTOTP))
-	e.GET("/account/otp/:csrf/rm", acc(RemoveTOTP))
+	e.POST("/account/otp/:csrf/confirm", acc(ConfirmTOTP))
+	e.POST("/account/otp/:csrf/rm", acc(RemoveTOTP))
 	// token
 	e.GET("/account/token", acc(ShowTokens))
 	e.GET("/account/token/:csrf/new", acc(CreateWriteToken))

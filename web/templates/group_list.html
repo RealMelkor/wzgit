@@ -1,6 +1,6 @@
 <h2>Groups</h2>
 
-<form action="/account/{{.CSRF}}/addgroup" method="POST">
+<form action="/account/groups/{{.CSRF}}/addgroup" method="POST">
 	<span style="white-space: nowrap">Create a new group:</span>
 	<input class="field" type="text" name="group" required="required">
 	<input class="btn" type="submit" value="Create">

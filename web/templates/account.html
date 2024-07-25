@@ -1,13 +1,27 @@
 <h2>Account : {{ .Username }}</h2>
 {{if .Description}}<p>{{ .Description }}</p>{{end}}
 
-
-<p><a href="/account/{{.CSRF}}/addgroup">Create a new user group</a></p>
-<p><a href="/account/{{.CSRF}}/chdesc">Change your account description</a></p>
-<p><a href="/account/groups">View the groups you are in</a></p>
-<p><a href="/account/token">View authentication tokens settings</a></p>
-<p><a href="/account/otp">View 2FA settings</a></p>
-<p><a href="/account/{{.CSRF}}/chpasswd">Change your password</a></p>
+<form action="/account/{{.CSRF}}/chdesc" method="POST">
+	<span style="white-space: nowrap">Update your profile description:</span>
+	<input class="field" type="text" name="description" required="required">
+	<input class="btn" type="submit" value="Update">
+</form>
+<p><a href="/account/groups">Groups</a></p>
+<p><a href="/account/token">Authentication tokens settings</a></p>
+<p><a href="/account/otp">2FA settings</a></p>
+<p>Change your password:</p>
+<form action="/account/{{.CSRF}}/chpasswd" method="POST">
+	<span style="white-space: nowrap">Old password:</span>
+	<input class="field" type="password" name="old_password" required="required">
+	<br>
+	<span style="white-space: nowrap">New password:</span>
+	<input class="field" type="password" name="new_password" required="required">
+	<br>
+	<span style="white-space: nowrap">Confirm password:</span>
+	<input class="field" type="password" name="confirm" required="required">
+	<br>
+	<input class="btn" type="submit" value="Update">
+</form>
 <p><a href="/account/{{.CSRF}}/disconnect">Disconnect</a></p>
 {{if .Sessions}}
 <p><a href="/account/{{.CSRF}}/disconnectall">Disconnect other sessions [{{.Sessions}}]</a></p>

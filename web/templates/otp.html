@@ -1,9 +1,16 @@
-=>. Go back
-
-# OTP
+<h2>2FA Settings</h2>
 {{if .Secret}}
-=>otp/{{.CSRF}}/rm Remove 2FA
+<p>Remove 2FA</p>
+<form action="/account/otp/{{.CSRF}}/rm" method="POST">
+	<span style="white-space: nowrap">2FA Code:</span>
+	<input class="field" type="password" name="code" required="required">
+	<input class="btn" type="submit" value="Remove">
+</form>
 {{else}}
-=>otp/{{.CSRF}}/qr QR code
-=>otp/{{.CSRF}}/confirm Confirm
+<img src="/account/otp/{{.CSRF}}/qr" alt="qr">
+<form action="/account/otp/{{.CSRF}}/confirm" method="POST">
+	<span style="white-space: nowrap">2FA Code:</span>
+	<input class="field" type="password" name="code" required="required">
+	<input class="btn" type="submit" value="Confirm">
+</form>
 {{end}}

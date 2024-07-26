@@ -7,15 +7,15 @@ import (
 	"io"
 	"bytes"
 
-        "gemigit/db"
-        "gemigit/repo"
+	"gemigit/db"
+	"gemigit/repo"
 
 	"github.com/labstack/echo/v4"
 	"github.com/gabriel-vasile/mimetype"
 )
 
 func redirect(c echo.Context, after string) error {
-	return c.Redirect(http.StatusFound, "/account/" + after)
+	return c.Redirect(http.StatusFound, "/account" + after)
 }
 
 func showFileContent(content string) string {

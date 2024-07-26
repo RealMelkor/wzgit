@@ -3,6 +3,7 @@ package web
 import (
 	"time"
 	"net/http"
+	"errors"
         "gemigit/db"
         "gemigit/repo"
         "gemigit/config"
@@ -11,33 +12,25 @@ import (
 )
 
 func ChangeDesc(c echo.Context, user db.User) error {
-	newdesc := c.QueryString()
-	if err := user.ChangeDescription(newdesc);
-	   err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	desc := c.Request().PostFormValue("description")
+	if err := user.ChangeDescription(desc); err != nil { return err }
 	return redirect(c, "")
 }
 
 func AddRepo(c echo.Context, user db.User) error {
 	name := c.Request().PostFormValue("repo")
-	if err := user.CreateRepo(name);
-	   err != nil {
-		return c.String(http.StatusBadRequest,
-				   err.Error())
-	}
-	if err := repo.InitRepo(name, user.Name); err != nil {
-		return c.String(http.StatusBadRequest,
-				   err.Error())
-	}
-	return redirect(c, "repo/" + name)
+	if err := user.CreateRepo(name); err != nil { return err }
+	if err := repo.InitRepo(name, user.Name); err != nil { return err }
+	return redirect(c, "/repo/" + name)
 }
 
 func ChangePassword(c echo.Context, user db.User) error {
-	passwd := c.QueryString()
-	if err := user.ChangePassword(passwd); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	oldPass := c.Request().PostFormValue("old_password")
+	newPass := c.Request().PostFormValue("new_password")
+	confirm := c.Request().PostFormValue("confirm")
+	if newPass != confirm { return errors.New("Passwords don't match") }
+	if err := db.CheckAuth(user.Name, oldPass); err != nil { return err }
+	if err := user.ChangePassword(newPass); err != nil { return err }
 	return redirect(c, "")
 }
 
@@ -55,8 +48,6 @@ func Disconnect(c echo.Context, user db.User) error {
 }
 
 func DisconnectAll(c echo.Context, user db.User) error {
-	if err := user.DisconnectAll(); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err := user.DisconnectAll(); err != nil { return err }
 	return redirect(c, "")
 }

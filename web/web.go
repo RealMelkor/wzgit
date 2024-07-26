@@ -188,12 +188,12 @@ func Listen() {
 	e.GET("repo/:repo/files/:blob", acc(RepoFileContent))
 
 	// user page
-	e.GET("/account/:csrf/chdesc", acc(ChangeDesc))
+	e.POST("/account/:csrf/chdesc", acc(ChangeDesc))
 	e.POST("/account/:csrf/addrepo", acc(AddRepo))
 	e.GET("/account/:csrf/disconnect", acc(Disconnect))
 	e.GET("/account/:csrf/disconnectall", acc(DisconnectAll))
 	if !config.Cfg.Ldap.Enabled {
-		e.GET("/account/:csrf/chpasswd", acc(ChangePassword))
+		e.POST("/account/:csrf/chpasswd", acc(ChangePassword))
 	}
 	// otp
 	e.GET("/account/otp", acc(ShowOTP))

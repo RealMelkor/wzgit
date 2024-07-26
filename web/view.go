@@ -105,15 +105,13 @@ func ShowAccount(c echo.Context, user db.User) (error) {
 		sessions = 0
 	}
 	data := struct {
-		Username string
-		Description string
+		User db.User
 		Repositories []string
 		RepositoriesAccess []db.Repo
 		Sessions int
 		CSRF string
 	}{
-		Username: user.Name,
-		Description: user.Description,
+		User: user,
 		Repositories: repoNames,
 		RepositoriesAccess: accessRepos,
 		Sessions: sessions,

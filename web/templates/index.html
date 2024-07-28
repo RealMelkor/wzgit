@@ -22,7 +22,14 @@
 			<td><input type="text" id="captcha" name="captcha" required="required"></td>
 		</tr>
 {{end}}
+		<tr>
+			<th>2FA Code:</th>
+			<td><input class="field" type="text" name="otp"></td>
+		</tr>
 	</table>
+{{if .Error}}
+	<p>{{.Error}}</p>
+{{end}}
 	<input class="btn" type="submit" value="Login">
 </form>
 {{if .Registration}}

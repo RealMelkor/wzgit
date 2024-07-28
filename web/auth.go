@@ -33,13 +33,16 @@ func Register(c echo.Context) error {
 func Login(c echo.Context) error {
 	name := c.Request().PostFormValue("username")
 	pass := c.Request().PostFormValue("password")
+	code := c.Request().PostFormValue("otp")
 	sig, err := token()
 	if err != nil { return err }
 	err = auth.Connect(name, pass, sig, c.RealIP())
 	if err != nil && err.Error() == "token required" {
-		return c.Redirect(http.StatusFound, "/otp")
+		err = auth.LoginOTP(sig, code)
 	}
-	if err != nil { return c.String(http.StatusBadRequest, err.Error()) }
+	if err != nil {
+		return showIndex(c, false, err.Error())
+	}
 	cookie := http.Cookie{
 		Domain: config.Cfg.Web.Domain,
 		Name: "auth_id",

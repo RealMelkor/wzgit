@@ -1,31 +1,45 @@
-=>/account/ Go back
+<p><a href="/{{if .Public}}repo{{else}}account/{{end}}">Public repositories</a></p>
 
-# {{ .Repo }}
+<h2>{{ .Repo }} by {{ .User }}</h2>
+<p><a href="/repo/{{.User}}">View account</a></p>
 {{if .Description -}}
-> {{ .Description }}
+<p>{{ .Description }}</p>
 {{end -}}
 {{- if .HasHTTP -}}
-> git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/{{ .User }}/{{ .Repo }}
+<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/{{ .User }}/{{ .Repo }}</p>
 {{- end -}}
 {{- if and .HasHTTP .HasSSH }}
 {{ end -}}
 {{- if .HasSSH -}}
-> git clone ssh://{{.LoggedAs}}{{ .SshDomain }}/{{ .User }}/{{ .Repo }}
+<p>git clone ssh://{{ .LoggedAs }}{{ .SshDomain }}/{{ .User }}/{{ .Repo }}</p>
 {{- end }}
 
-=>/account/repo/{{.Repo}}/access Collaborators
-=>/account/repo/{{.Repo}}/{{.CSRF}}/chname Change repository name
-=>/account/repo/{{.Repo}}/{{.CSRF}}/chdesc Change repository description
-=>/account/repo/{{.Repo}}/{{.CSRF}}/togglepublic Make the repository {{if .Public}}private{{else}}public {{end }}
-=>/account/repo/{{.Repo}}/{{.CSRF}}/delrepo Delete repository
+{{if .Owner}}
+<p><a href="/account/repo/{{.Repo}}/access">Collaborators</a></p>
+<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/chname">Change repository name</a></p>
+<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/chdesc">Change repository description</a></p>
+<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/togglepublic">Make the repository {{if .Public}}private{{else}}public {{end }}</a></p>
+<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/delrepo">Delete repository</a></p>
+{{end}}
 
-=>/account/repo/{{.Repo}} Log
-=>/account/repo/{{.Repo}}/files Files
-=>/account/repo/{{.Repo}}/refs Refs
+{{$prefix := print "/repo/" .User "/" .Repo}}
+{{if .Owner}}
+{{$prefix = print "/account/repo/" .Repo}}
+{{end}}
+<p><a href="{{$prefix}}">Log</a></p>
+<p><a href="{{$prefix}}/files">Files</a></p>
+<p><a href="{{$prefix}}/refs">Refs</a></p>
 {{ if .HasLicense -}}
-=>/account/repo/{{.Repo}}/license License
+<p><a href="{{$prefix}}/license">License</a></p>
 {{ end -}}
 {{ if .HasReadme -}}
-=>/account/repo/{{.Repo}}/readme Readme
+<p><a href="{{$prefix}}/readme">Readme</a></p>
 {{ end }}
-{{if .Content -}} {{ .Content }} {{ else }} Empty repository {{ end }}
+{{if not .Content}}
+<p>Empty repository</p>
+{{ end }}
+{{if eq .Page "license"}}{{ template "license" .Content }}{{end}}
+{{if eq .Page "log"}}{{ template "log" .Content }}{{end}}
+{{if eq .Page "refs"}}{{ template "refs" .Content }}{{end}}
+{{if eq .Page "files"}}{{ template "files" .Content }}{{end}}
+{{if eq .Page "readme"}}{{ template "readme" .Content }}{{end}}

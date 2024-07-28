@@ -82,7 +82,7 @@ func TogglePublic(c echo.Context, user db.User) error {
 	   err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	return redirect(c, "repo/" + c.Param("repo"))
+	return redirect(c, "/repo/" + c.Param("repo"))
 }
 
 func ChangeRepoName(c echo.Context, user db.User) error {
@@ -97,7 +97,7 @@ func ChangeRepoName(c echo.Context, user db.User) error {
 	   err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	return redirect(c, "repo/" + newname)
+	return redirect(c, "/repo/" + newname)
 }
 
 func ChangeRepoDesc(c echo.Context, user db.User) error {
@@ -105,13 +105,13 @@ func ChangeRepoDesc(c echo.Context, user db.User) error {
 	if err := user.ChangeRepoDesc(c.Param("repo"), newdesc); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	return redirect(c, "repo/" + c.Param("repo"))
+	return redirect(c, "/repo/" + c.Param("repo"))
 }
 
 func DeleteRepo(c echo.Context, user db.User) error {
 	name := c.QueryString()
 	if name != c.Param("repo") {
-		return redirect(c, "repo/" + c.Param("repo"))
+		return redirect(c, "/repo/" + c.Param("repo"))
 	}
 	// check if repo exist
 	if err := repo.RemoveRepo(name, user.Name);

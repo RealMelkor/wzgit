@@ -11,7 +11,7 @@ import (
 	"gemigit/auth"
 	"gemigit/config"
 	"gemigit/db"
-	"gemigit/httpgit"
+	//"gemigit/httpgit"
 	"gemigit/sshgit"
 	"gemigit/repo"
 	"gemigit/web"
@@ -153,11 +153,11 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	if config.Cfg.Git.Http.Enabled {
+	/*if config.Cfg.Git.Http.Enabled {
 		go httpgit.Listen(config.Cfg.Git.Path,
 			config.Cfg.Git.Http.Address,
 			config.Cfg.Git.Http.Port)
-	}
+	}*/
 	if config.Cfg.Git.SSH.Enabled {
 		go sshgit.Listen(config.Cfg.Git.Path,
 			config.Cfg.Git.SSH.Address,

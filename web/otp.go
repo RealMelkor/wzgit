@@ -56,14 +56,14 @@ func ConfirmTOTP(c echo.Context, user db.User) error {
 
 func LoginOTP(c echo.Context, user db.User) error {
 
-	query := c.QueryString()
-	err := auth.LoginOTP(user.Signature, query)
+	code := c.Request().PostFormValue("code")
+	err := auth.LoginOTP(user.Signature, code)
 	if err != nil && err.Error() == "wrong code" {
-		return c.Redirect(http.StatusFound, "/otp")
+		return c.Redirect(http.StatusFound, "/")
 	}
 	if err != nil { return err }
 
-	return c.Redirect(http.StatusFound, "/account/")
+	return c.Redirect(http.StatusFound, "/account")
 }
 
 func RemoveTOTP(c echo.Context, user db.User) error {

@@ -6,14 +6,13 @@ import (
 	"gemigit/db"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
+	"net/url"
 
 	githttpxfer "github.com/nulab/go-git-http-xfer/githttpxfer"
 )
 
-func Listen(path string, address string, port int) {
+func Listen(path string) http.Handler {
 	ghx, err := githttpxfer.New(path, "git")
 	if err != nil {
 		log.Fatalln("GitHTTPXfer instance could not be created. ",
@@ -21,15 +20,10 @@ func Listen(path string, address string, port int) {
 	}
 
 	chain := newChain()
-	chain.use(logging)
 	chain.use(basicAuth)
 	handler := chain.build(ghx)
 
-	log.Println("Http server started on port", port)
-	if err := http.ListenAndServe(":"+strconv.Itoa(port), handler);
-	   err != nil {
-		log.Fatalln("ListenAndServe: ", err.Error())
-	}
+	return handler
 }
 
 type middleware func(http.Handler) http.Handler
@@ -53,27 +47,17 @@ func (c *chain) build(h http.Handler) http.Handler {
 	return h
 }
 
-func logging(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t1 := time.Now()
-		next.ServeHTTP(w, r)
-		t2 := time.Now()
-		realIP := r.Header.Get("X-Real-IP")
-		log.Println("["+realIP+"]["+r.Method+"]",
-			    r.URL.String(), t2.Sub(t1))
-	})
-}
-
 func basicAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		readOnly := false
 		public := false
 		params := strings.Split(r.URL.Path[1:], "/")
-		if len(params) < 2 {
+		if len(params) < 3 {
 			renderNotFound(w)
 			return
 		}
+		params = params[1:]
 		owner := params[0]
 		repo := params[1]
 		if strings.Contains(r.URL.Path, "git-upload-pack") ||
@@ -81,10 +65,16 @@ func basicAuth(next http.Handler) http.Handler {
 			readOnly = true
 			public, err = db.IsRepoPublic(repo, owner)
 			if err != nil {
+				log.Println(err)
 				renderNotFound(w)
 				return
 			}
 			if config.Cfg.Git.Public && public {
+				s := strings.Replace(
+					r.URL.String(), "/git/", "/", 1)
+				r.URL, err = url.Parse(s)
+				r.RequestURI = strings.Replace(
+					r.RequestURI, "/git/", "/", 1)
 				next.ServeHTTP(w, r)
 				return
 			}

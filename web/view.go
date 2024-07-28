@@ -67,21 +67,27 @@ func showRepoFile(user string, reponame string, file string) (string, error) {
         return string(buf), nil
 }
 
-func ShowIndex(c echo.Context, isConnected bool) (error) {
+func showIndex(c echo.Context, isConnected bool, err string) (error) {
 	data := struct {
 		Title		string
 		Registration	bool
 		Connected	bool
 		Public		bool
 		Captcha		bool
+		Error		string
 	}{
-		Title: config.Cfg.Title,
-		Registration: config.Cfg.Users.Registration,
-		Connected: isConnected,
-		Public: isConnected || config.Cfg.Git.Public,
-		Captcha: config.Cfg.Catpcha.Enabled,
+		Title:		config.Cfg.Title,
+		Registration:	config.Cfg.Users.Registration,
+		Connected:	isConnected,
+		Public:		isConnected || config.Cfg.Git.Public,
+		Captcha:	config.Cfg.Catpcha.Enabled,
+		Error:		err,
 	}
 	return render(c, "index.html", data)
+}
+
+func ShowIndex(c echo.Context, isConnected bool) (error) {
+	return showIndex(c, isConnected, "")
 }
 
 func ShowAccount(c echo.Context, user db.User) (error) {
@@ -405,6 +411,7 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		Description string
 		Repo string
 		Public bool
+		Owner bool
 		HasReadme bool
 		HasLicense bool
 		Content any
@@ -421,6 +428,7 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		Description: desc,
 		Repo: name,
 		Public: public,
+		Owner: owner,
 		HasReadme: hasFile(name, author, "README.html") ||
 			   hasFile(name, author, "README.md") ||
 			   hasFile(name, author, "README"),
@@ -432,7 +440,7 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 	if owner {
 		return render(c, "repo.html", data)
 	}
-	return render(c, "public_repo.html", data)
+	return render(c, "repo.html", data)
 }
 
 func PublicList(c echo.Context) (error) {

@@ -30,8 +30,6 @@ type Config struct {
 			Enabled		bool
 			Https		bool
 			Domain		string	`validate:"required"`
-			Address 	string  `validate:"required"`
-			Port		int	`validate:"required"`
 		}
 		SSH struct {
 			Enabled		bool

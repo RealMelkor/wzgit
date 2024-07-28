@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"io"
+	"time"
+	"log"
 
         "github.com/tdewolff/minify/v2"
         "github.com/tdewolff/minify/v2/css"
@@ -14,6 +16,7 @@ import (
 	"gemigit/config"
 	"gemigit/db"
 	"gemigit/csrf"
+	"gemigit/httpgit"
 )
 
 //go:embed static/*
@@ -22,7 +25,7 @@ var staticFS embed.FS
 //go:embed css/*
 var cssFS embed.FS
 
-func static(path string) func(echo.Context) error {
+func static(path string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		f, err := staticFS.Open("static/" + path)
 		if err != nil {
@@ -84,8 +87,7 @@ func render(c echo.Context, template string, data any) error {
         if err != nil { return err }
         err = templates.Lookup("footer").Execute(w, nil)
         if err != nil { return err }
-        w.Close()
-        return nil
+        return w.Close()
 }
 
 func errorPage(f func(echo.Context) error) func(c echo.Context) error {
@@ -113,7 +115,7 @@ func getUser(c echo.Context) (db.User, error) {
 	return user, nil
 }
 
-func isConnected(f func(echo.Context, bool) error) func(c echo.Context) error {
+func isConnected(f func(echo.Context, bool) error) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		_, err := getUser(c)
 		return f(c, err == nil)
@@ -131,7 +133,22 @@ func acc(f func(echo.Context, db.User) error) func(c echo.Context) error {
 		}
 		return nil
 	}
+}
 
+func Logger(next echo.HandlerFunc) echo.HandlerFunc {
+	return func (c echo.Context) error {
+		t1 := time.Now()
+		err := next(c)
+		t2 := time.Now()
+		r := c.Request()
+		realIP := r.Header.Get("X-Real-IP")
+		if realIP == "" {
+			realIP = r.RemoteAddr
+		}
+		log.Println("["+realIP+"]["+r.Method+"]",
+			    r.URL.String(), t2.Sub(t1))
+		return err
+	}
 }
 
 func Listen() {
@@ -153,11 +170,11 @@ func Listen() {
 	e.GET("/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
 
 	// repository settings
-	e.GET("repo/:repo/*", acc(RepoFile))
-	e.GET("repo/:repo/:csrf/togglepublic", acc(TogglePublic))
-	e.GET("repo/:repo/:csrf/chname", acc(ChangeRepoName))
-	e.GET("repo/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
-	e.GET("repo/:repo/:csrf/delrepo", acc(DeleteRepo))
+	e.GET("/account/repo/:repo/*", acc(RepoFile))
+	e.GET("/account/repo/:repo/:csrf/togglepublic", acc(TogglePublic))
+	e.GET("/account/repo/:repo/:csrf/chname", acc(ChangeRepoName))
+	e.GET("/account/repo/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
+	e.GET("/account/repo/:repo/:csrf/delrepo", acc(DeleteRepo))
 
 	// access management
 	e.GET("/account/repo/:repo/access", acc(ShowAccess))
@@ -232,14 +249,20 @@ func Listen() {
 	e.GET("/repo/:user/:repo/files/:blob", PublicFileContent)
 
 	e.POST("/login", errorPage(Login))
-	//g.PassAuthLoginHandle("/login", Login)
 
 	if config.Cfg.Users.Registration {
 		e.POST("/register", errorPage(Register))
 	}
-	e.GET("/otp", acc(LoginOTP))
-
 	e.GET("/", isConnected(ShowIndex))
+
+	if config.Cfg.Git.Http.Enabled {
+		e.GET("/git/:user/:repo",
+			echo.WrapHandler(httpgit.Listen(config.Cfg.Git.Path)))
+		e.POST("/git/:user/:repo",
+			echo.WrapHandler(httpgit.Listen(config.Cfg.Git.Path)))
+	}
+
+	e.Use(Logger)
 
 	e.Logger.Fatal(e.Start(config.Cfg.Web.Host))
 }

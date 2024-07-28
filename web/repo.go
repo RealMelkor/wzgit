@@ -62,13 +62,13 @@ func RepoFiles(c echo.Context, user db.User) error {
 }
 
 func RepoFileContent(c echo.Context, user db.User) error {
-	content, err := repo.GetPrivateFile(c.Param("repo"), user.Name,
+	out, err := repo.GetPrivateFile(c.Param("repo"), user.Name,
 				c.Param("blob"), user.Signature)
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	header := "=>/account/repo/" + c.Param("repo") + "/files Go Back\n\n"
-	return c.HTML(http.StatusOK, header + showFileContent(content))
+        if err != nil { return err }
+	defer out.Close()
+        c.Response().WriteHeader(http.StatusOK)
+        _, err = io.Copy(c.Response().Writer, out)
+        return err
 }
 
 func RepoFile(c echo.Context, user db.User) error {

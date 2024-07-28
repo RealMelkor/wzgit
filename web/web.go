@@ -7,6 +7,7 @@ import (
 	"io"
 	"time"
 	"log"
+	"strings"
 
         "github.com/tdewolff/minify/v2"
         "github.com/tdewolff/minify/v2/css"
@@ -72,22 +73,26 @@ func render(c echo.Context, template string, data any) error {
         c.Response().Header().Add("Content-Type", "text/html; charset=utf-8")
         w := minifyHTML(c.Response().Writer)
 	user, err := getUser(c)
+	navs := strings.Split(c.Request().RequestURI, "/")[1:]
+	if navs[len(navs) - 1] == "" { navs = navs[:len(navs) - 1] }
 	header := struct {
+		Navs		[]string
 		Title		string
 		IsConnected	bool
 		User		db.User
 	}{
+		Navs:		navs,
 		Title:		config.Cfg.Title,
 		IsConnected:	err == nil,
 		User:		user,
 	}
-        err = templates.Lookup("header").Execute(w, header)
-        if err != nil { return err }
-        err = templates.Lookup(template).Execute(w, data)
-        if err != nil { return err }
-        err = templates.Lookup("footer").Execute(w, nil)
-        if err != nil { return err }
-        return w.Close()
+	err = templates.Lookup("header").Execute(w, header)
+	if err != nil { return err }
+	err = templates.Lookup(template).Execute(w, data)
+	if err != nil { return err }
+	err = templates.Lookup("footer").Execute(w, nil)
+	if err != nil { return err }
+	return w.Close()
 }
 
 func errorPage(f func(echo.Context) error) func(c echo.Context) error {
@@ -151,6 +156,12 @@ func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func found(dst string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.Redirect(http.StatusFound, dst)
+	}
+}
+
 func Listen() {
 	e := echo.New()
 	e.GET("/robots.txt", static("robots.txt"))
@@ -160,16 +171,17 @@ func Listen() {
 	// groups management
 	e.GET("/account/groups", acc(ShowGroups))
 	e.GET("/account/groups/:group", acc(ShowMembers))
-	e.POST("/account/groups/:csrf/addgroup", acc(catch(AddGroup,
-		"group_error", "/groups")))
-	e.GET("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
-	e.GET("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
-	e.GET("/account/groups/:group/:csrf/add", acc(AddToGroup))
+	e.POST("/account/groups/:csrf/addgroup",
+		acc(catch(AddGroup, "group_error", "/groups")))
+	e.POST("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
+	e.POST("/account/groups/:group/:csrf/add",
+		acc(catch(AddToGroup, "group_add_error", "..")))
 	e.GET("/account/groups/:group/:csrf/leave", acc(LeaveGroup))
 	e.GET("/account/groups/:group/:csrf/delete", acc(DeleteGroup))
 	e.GET("/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
 
 	// repository settings
+	e.GET("/account/repo", found("/account"))
 	e.GET("/account/repo/:repo/*", acc(RepoFile))
 	e.GET("/account/repo/:repo/:csrf/togglepublic", acc(TogglePublic))
 	e.GET("/account/repo/:repo/:csrf/chname", acc(ChangeRepoName))

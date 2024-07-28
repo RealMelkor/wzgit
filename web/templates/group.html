@@ -1,26 +1,36 @@
 <h2>{{ .Group }}</h2>
-{{if .Description -}}
-> {{ .Description }}
-{{end -}}
-{{if .IsOwner -}}
-=>{{.Group}}/{{.CSRF}}/add Add user
-=>{{.Group}}/{{.CSRF}}/desc Set description
-=>{{.Group}}/{{.CSRF}}/delete Delete group
-
+{{if .Description}}
+<p>{{.Description}}</p>
+{{end}}
+{{if .IsOwner}}
+<form action="/account/groups/{{.Group}}/{{.CSRF}}/add" method="POST">
+	<span style="white-space: nowrap">Add user:</span>
+	<input class="field" type="text" name="name" required="required">
+	<input class="btn" type="submit" value="Add">
+	<p>{{.User.GetOnce "group_add_error"}}</p>
+</form>
+<form action="/account/groups/{{.Group}}/{{.CSRF}}/desc" method="POST">
+	<span style="white-space: nowrap">Set description:</span>
+	<input class="field" type="text" name="description">
+	<input class="btn" type="submit" value="Update">
+</form>
+<p><a href="/account/groups/{{.Group}}/{{.CSRF}}/delete?{{.User.Get "group_delete_confirm"}}">Delete group</a>
+{{if .User.GetOnce "group_delete_confirm"}}
+ (Click again to confirm)
+{{end}}</p>
 {{else}}
-## Group administrator
-=>/repo/{{.Owner}} {{.Owner}}
+<h3>Group administrator</h3>
+<p><a href="/account/repo/{{.Owner}}">{{.Owner}}</a></p>
+<p><a href="/account/{{.CSRF}}/leave">Leave group</a></p>
+{{end}}
 
-=>{{.CSRF}}/leave Leave group
+<h3>Members</h3>
 
-{{end -}}
-
-## Members
-
+<ul>
 {{ range .Members -}}
-* {{ .Name }}
-{{if $.IsOwner -}}
-=>{{$.Group}}/{{$.CSRF}}/kick/{{.Name}} Remove {{ .Name }}
-
-{{end -}}
-{{ end -}}
+<li>{{ .Name }}</li>
+{{if $.IsOwner}}
+<p><a href="{{$.Group}}/{{$.CSRF}}/kick/{{.Name}}">Remove {{ .Name }}</a></p>
+{{end}}
+{{end}}
+</ul>

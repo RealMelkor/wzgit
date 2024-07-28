@@ -1,12 +1,10 @@
-<p><a href="/{{if .Public}}repo{{else}}account/{{end}}">Public repositories</a></p>
-
 <h2>{{ .Repo }} by {{ .User }}</h2>
 <p><a href="/repo/{{.User}}">View account</a></p>
 {{if .Description -}}
 <p>{{ .Description }}</p>
 {{end -}}
 {{- if .HasHTTP -}}
-<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/{{ .User }}/{{ .Repo }}</p>
+<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/git/{{ .User }}/{{ .Repo }}</p>
 {{- end -}}
 {{- if and .HasHTTP .HasSSH }}
 {{ end -}}

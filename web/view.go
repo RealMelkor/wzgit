@@ -42,6 +42,13 @@ func LoadTemplate() error {
 		"AccessFirst": accessFirstOption,
 		"AccessSecond": accessSecondOption,
 		"AccessPrivilege": privilegeToString,
+		"sub": func(y, x int) int {
+			return x - y
+		},
+		"title": func(s string) string {
+			if len(s) < 2 { return s }
+			return strings.ToUpper(s[0:1]) + s[1:]
+		},
 	})
 	_, err = t.ParseFS(templatesFS, "templates/*.html")
 	if err != nil {
@@ -148,7 +155,6 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 		return c.String(http.StatusBadRequest,
 				   "Group not found")
 	}
-
 	members, err := user.GetMembers(group)
 	if err != nil {
 		log.Println(err.Error())
@@ -176,6 +182,7 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 	}
 
 	data := struct {
+		User	db.User
 		Members []db.Member
 		MembersCount int
 		IsOwner bool
@@ -184,6 +191,7 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 		Description string
 		CSRF string
 	}{
+		User:		user,
 		Members: members,
 		MembersCount: len(members),
 		IsOwner: isOwner,

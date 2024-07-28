@@ -12,10 +12,25 @@
 	<body>
 		<div class="header">
 			<h1><a href="/">{{.Title}}</a></h1>
+			<p>
+			{{$last := (len .Navs | sub 1)}}
+			{{if not (eq (len .Navs) 0)}}&gt; {{end}}
+			{{$start := ""}}
+			{{range $i, $v := .Navs}}
+				{{$start = print $start "/" $v}}
+				{{if eq $v "repo"}}{{$v = "repositories"}}{{end}}
+				{{if eq $v "otp"}}{{$v = "2FA"}}{{end}}
+				{{if not (eq $i $last)}}<a href="{{$start}}">{{title $v}}</a> &gt;
+				{{else}}{{title $v}}
+				{{end}}
+			{{end}}
+			</p>
 			{{if .IsConnected}}
-			<p><a href="/account">{{.User.Name}}</a></p>
+			<div style="margin-left: auto; padding-right: 20px;">
+			<p>{{.User.Name}}</p>
+			<p><a href="/account">Your profile</a></p>
+			</div>
 			{{end}}
 		</div>
 		<div id="main">
-		<br>
 {{end}}

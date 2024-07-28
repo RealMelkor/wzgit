@@ -18,6 +18,7 @@ func PublicFileContent(c echo.Context) error {
 	out, err := repo.GetPublicFile(
 		c.Param("repo"), c.Param("user"), c.Param("blob"))
         if err != nil { return err }
+	defer out.Close()
 	c.Response().WriteHeader(http.StatusOK)
 	_, err = io.Copy(c.Response().Writer, out)
         return err

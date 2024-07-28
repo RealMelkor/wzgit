@@ -3,17 +3,18 @@ package web
 import (
 	"gemigit/db"
 	"net/http"
+	"errors"
 
 	"github.com/labstack/echo/v4"
 )
 
 func groupRedirect(c echo.Context) error {
-	return c.String(http.StatusFound, "/account/groups/" +
-		c.Param("group"))
+	return c.Redirect(http.StatusFound, "/account/groups/" +
+			c.Param("group"))
 }
 
 func groupsListRedirect(c echo.Context) error {
-	return c.String(http.StatusFound, "/account/groups")
+	return c.Redirect(http.StatusFound, "/account/groups")
 }
 
 func isGroupOwner(c echo.Context, user db.User) (int, error) {
@@ -33,10 +34,10 @@ func isGroupOwner(c echo.Context, user db.User) (int, error) {
 }
 
 func SetGroupDesc(c echo.Context, user db.User) error {
-	query := c.QueryString()
+	desc := c.Request().PostFormValue("description")
 	id, err := isGroupOwner(c, user)
 	if err != nil { return err }
-	err = db.SetGroupDescription(id, query)
+	err = db.SetGroupDescription(id, desc)
 	if err != nil { return err }
 	return groupRedirect(c)
 }
@@ -44,12 +45,13 @@ func SetGroupDesc(c echo.Context, user db.User) error {
 func AddGroup(c echo.Context, user db.User) error {
 	name := c.Request().PostFormValue("group")
 	if err := user.CreateGroup(name); err != nil { return err }
-	return redirect(c, "groups/" + name)
+	return redirect(c, "/groups/" + name)
 }
 
 func DeleteGroup(c echo.Context, user db.User) error {
 	name := c.QueryString()
 	if name != c.Param("group") {
+		user.Set("group_delete_confirm", c.Param("group"))
 		return groupRedirect(c)
 	}
 	id, err := isGroupOwner(c, user)
@@ -104,18 +106,11 @@ func RmFromGroup(c echo.Context, user db.User) (error) {
 }
 
 func AddToGroup(c echo.Context, user db.User) (error) {
-	query := c.QueryString()
+	query := c.Request().PostFormValue("name")
 	group := c.Param("group")
 	owner, err := user.IsInGroup(group)
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	if !owner {
-                return c.String(http.StatusBadRequest, "Permission denied")
-	}
-
-	if err = user.AddUserToGroup(group, query); err != nil {
-                return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
+	if !owner { return errors.New("Permission denied") }
+	if err = user.AddUserToGroup(group, query); err != nil { return err }
 	return groupRedirect(c)
 }

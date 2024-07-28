@@ -125,7 +125,8 @@ func GetFile(name string, username string, file string) (*object.File, error) {
 	return out, nil
 }
 
-func GetPublicFile(name string, username string, hash string) (io.Reader, error) {
+func GetPublicFile(name string, username string,
+			hash string) (io.ReadCloser, error) {
 	public, err := db.IsRepoPublic(name, username)
 	if err != nil { return nil, err }
 	if !public { return nil, errors.New("repository is private") }
@@ -136,35 +137,21 @@ func GetPublicFile(name string, username string, hash string) (io.Reader, error)
 	reader, err := file.Reader()
 	if err != nil { return nil, err }
 	return reader, nil
-	/*buf, err := io.ReadAll(reader)
-	if err != nil { return nil, err }
-	return string(buf), nil
-	*/
 }
 
 func GetPrivateFile(name string, username string,
-		    hash string, sig string) (string, error) {
+		    hash string, sig string) (io.ReadCloser, error) {
 	user, b := db.GetUser(sig)
 	if !b || username != user.Name {
-		return "", errors.New("invalid signature")
+		return nil, errors.New("invalid signature")
 	}
 	repo, err := git.PlainOpen(rootPath + "/" + username + "/" + name)
-	if err != nil {
-		return "", err
-	}
+	if err != nil { return nil, err }
 	file, err := repo.BlobObject(plumbing.NewHash(hash))
-	if err != nil {
-		return "", err
-	}
+	if err != nil { return nil, err }
 	reader, err := file.Reader()
-	if err != nil {
-		return "", err
-	}
-	buf, err := io.ReadAll(reader)
-	if err != nil {
-		return "", err
-	}
-	return string(buf), nil
+	if err != nil { return nil, err }
+	return reader, nil
 }
 
 func ChangeRepoDir(name string, username string, newname string) error {

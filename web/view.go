@@ -122,17 +122,15 @@ func ShowAccount(c echo.Context, user db.User) (error) {
 
 func ShowGroups(c echo.Context, user db.User) (error) {
 	groups, err := user.GetGroups()
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusInternalServerError,
-				   "Failed to fetch groups")
-	}
+	if err != nil { return err }
 	data := struct {
-		Groups []db.Group
-		CSRF string
+		User	db.User
+		Groups	[]db.Group
+		CSRF	string
 	}{
-		Groups: groups,
-		CSRF: csrf.Token(user.Signature),
+		User:	user,
+		Groups:	groups,
+		CSRF:	csrf.Token(user.Signature),
 	}
 	return render(c, "group_list.html", data)
 }
@@ -512,19 +510,18 @@ func ShowOTP(c echo.Context, user db.User) error {
 func ShowTokens(c echo.Context, user db.User) error {
 
 	tokens, err := user.GetTokens()
-	if err != nil {
-		log.Println(err)
-		return c.String(http.StatusBadRequest, "Unexpected error")
-	}
+	if err != nil { return err }
 
 	data := struct {
-		Tokens []db.Token
-		Secure bool
-		CSRF string
+		User	db.User
+		Tokens	[]db.Token
+		Secure	bool
+		CSRF	string
 	}{
-		Tokens: tokens,
-		Secure: user.SecureGit,
-		CSRF: csrf.Token(user.Signature),
+		User:	user,
+		Tokens:	tokens,
+		Secure:	user.SecureGit,
+		CSRF:	csrf.Token(user.Signature),
 	}
 	return render(c, "token.html", data)
 }

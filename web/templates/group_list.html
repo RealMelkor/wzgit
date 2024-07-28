@@ -3,6 +3,7 @@
 <form action="/account/groups/{{.CSRF}}/addgroup" method="POST">
 	<span style="white-space: nowrap">Create a new group:</span>
 	<input class="field" type="text" name="group" required="required">
+	<p>{{.User.GetOnce "group_error"}}</p>
 	<input class="btn" type="submit" value="Create">
 </form>
 

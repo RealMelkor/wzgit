@@ -20,7 +20,7 @@
 	<span style="white-space: nowrap">Confirm password:</span>
 	<input class="field" type="password" name="confirm" required="required">
 	<br>
-	<p>{{.User.GetError "chpasswd"}}</p>
+	<p>{{.User.GetOnce "chpasswd_error"}}</p>
 	<input class="btn" type="submit" value="Update">
 </form>
 <p><a href="/account/{{.CSRF}}/disconnect">Disconnect</a></p>

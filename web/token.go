@@ -1,9 +1,8 @@
 package web
 
 import (
-	"log"
 	"strconv"
-	"net/http"
+	"errors"
 
 	"gemigit/db"
 
@@ -12,16 +11,9 @@ import (
 
 func CreateToken(c echo.Context, user db.User, readOnly bool) error {
 	token, err := user.CreateToken(readOnly)
-	if err != nil {
-		log.Println(err)
-		return c.String(http.StatusBadRequest, "Unexpected error")
-	}
-	data := struct {
-		Token string
-	}{
-		Token: token,
-	}
-	return render(c, "token_new.gmi", data)
+	if err != nil { return err }
+	user.Set("new_token", token)
+	return redirect(c, "/token")
 }
 
 func CreateWriteToken(c echo.Context, user db.User) error {
@@ -33,25 +25,22 @@ func CreateReadToken(c echo.Context, user db.User) error {
 }
 
 func ToggleTokenAuth(c echo.Context, user db.User) error {
-	if err := user.ToggleSecure(); err != nil {
-		log.Println(err)
-		return c.String(http.StatusBadRequest, "Unexpected error")
-	}
-	return redirect(c, "token")
+	if err := user.ToggleSecure(); err != nil { return err }
+	return redirect(c, "/token")
 }
 
 func RenewToken(c echo.Context, user db.User) error {
 	id, err := strconv.Atoi(c.Param("token"))
 	if err != nil || user.RenewToken(id) != nil {
-		return c.String(http.StatusBadRequest, "Invalid token")
+		return errors.New("Invalid token")
 	}
-	return redirect(c, "token")
+	return redirect(c, "/token")
 }
 
 func DeleteToken(c echo.Context, user db.User) error {
 	id, err := strconv.Atoi(c.Param("token"))
 	if err != nil || user.DeleteToken(id) != nil {
-		return c.String(http.StatusBadRequest, "Invalid token")
+		return errors.New("Invalid token")
 	}
-	return redirect(c, "token")
+	return redirect(c, "/token")
 }

@@ -43,9 +43,7 @@ func SetGroupDesc(c echo.Context, user db.User) error {
 
 func AddGroup(c echo.Context, user db.User) error {
 	name := c.Request().PostFormValue("group")
-	if err := user.CreateGroup(name); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err := user.CreateGroup(name); err != nil { return err }
 	return redirect(c, "groups/" + name)
 }
 
@@ -107,9 +105,6 @@ func RmFromGroup(c echo.Context, user db.User) (error) {
 
 func AddToGroup(c echo.Context, user db.User) (error) {
 	query := c.QueryString()
-	/*if query == "" {
-		return c.String(http.StatusInput, "Username")
-	}*/
 	group := c.Param("group")
 	owner, err := user.IsInGroup(group)
 	if err != nil {

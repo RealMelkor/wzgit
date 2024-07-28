@@ -67,3 +67,19 @@ func (user User) CreateSession(signature string) error {
 	users[signature] = user
 	return nil
 }
+
+
+var sessionValues = map[string]string{}
+func (user User) Set(name string, value string) {
+	sessionValues[user.Signature + name] = value
+}
+
+func (user User) Get(name string) string {
+	return sessionValues[user.Signature + name]
+}
+
+func (user User) GetOnce(name string) string {
+	v := sessionValues[user.Signature + name]
+	sessionValues[user.Signature + name] = ""
+	return v
+}

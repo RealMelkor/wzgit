@@ -24,6 +24,16 @@ func AddRepo(c echo.Context, user db.User) error {
 	return redirect(c, "/repo/" + name)
 }
 
+type accFunc func(echo.Context, db.User) error
+func catch(f accFunc, name string, dst string) accFunc {
+	return func(c echo.Context, user db.User) error {
+		if err := f(c, user); err != nil {
+			user.Set(name, err.Error())
+		}
+		return redirect(c, dst)
+	}
+}
+
 func ChangePassword(c echo.Context, user db.User) error {
 	oldPass := c.Request().PostFormValue("old_password")
 	newPass := c.Request().PostFormValue("new_password")

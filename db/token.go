@@ -2,12 +2,26 @@ package db
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"time"
 	"log"
 	"errors"
 )
+
+const characters =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678901"
+const charactersLength = byte(len(characters) - 1)
+const tokenLength = byte(48)
+
+func newToken() (string, error) {
+	var random [tokenLength]byte
+	var b [tokenLength]byte
+	_, err := rand.Read(random[:])
+	if err != nil { return "", err }
+	for i := range b {
+		b[i] = characters[random[i] & charactersLength]
+	}
+	return string(b[:]), nil
+}
 
 func CanUsePassword(repo string, owner string, username string) (bool, error) {
 	row, err := db.Query(`SELECT securegit FROM user WHERE
@@ -46,22 +60,15 @@ func CanUsePassword(repo string, owner string, username string) (bool, error) {
 
 func (user User) CreateToken(readOnly bool) (string, error) {
 	data := make([]byte, 32)
-	if _, err := rand.Read(data); err != nil {
-		return "", err
-	}
-	token := base64.RawStdEncoding.EncodeToString(data)
-	sum := sha256.Sum224(data)
-	hash := base64.RawStdEncoding.EncodeToString(sum[:])
-	_, err := db.Exec(`INSERT INTO
+	if _, err := rand.Read(data); err != nil { return "", err }
+	token, err := newToken()
+	if err != nil { return "", err }
+	_, err = db.Exec(`INSERT INTO
 		token(userID, token, hint, expiration, readonly)
 		VALUES(?, ?, ?, ?, ?);`,
-		user.ID, hash, token[0:4], time.Now().Unix() + 3600 * 24 * 30,
+		user.ID, token, token[0:4], time.Now().Unix() + 3600 * 24 * 30,
 		readOnly)
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
+	return token, err
 }
 
 func (user User) RenewToken(tokenID int) (error) {
@@ -136,36 +143,22 @@ func (user *User) ToggleSecure() error {
 }
 
 func TokenAuth(username string, token string, wantWrite bool) error {
-	decoded, err := base64.RawStdEncoding.DecodeString(token)
-	if err != nil {
-		log.Println(err)
-		return errors.New("invalid token")
-	}
-	sum := sha256.Sum224(decoded)
-	hash := base64.RawStdEncoding.EncodeToString(sum[:])
 	row, err := db.Query(`SELECT b.expiration, b.readonly FROM user a
 				INNER JOIN token b ON a.userID = b.UserID WHERE
 				UPPER(a.name) LIKE UPPER(?) AND
 				UPPER(b.token) LIKE UPPER(?)`,
-				username, hash)
-	if err != nil {
-		log.Println(err)
-		return errors.New("unexpected error")
-	}
+				username, token)
+	if err != nil { return err }
 	defer row.Close()
-	if !row.Next() {
-		return errors.New("invalid token")
-	}
+	if !row.Next() { return errors.New("invalid token") }
 	var expiration int64
 	var readonly bool
 	row.Scan(&expiration, &readonly)
 	if expiration <= time.Now().Unix() {
 		return errors.New("token expired")
 	}
-	if wantWrite {
-		if readonly {
-			return errors.New("the token only has read access")
-		}
+	if wantWrite && readonly {
+		return errors.New("the token only has read access")
 	}
 	return nil
 }

@@ -143,7 +143,8 @@ func Listen() {
 	// groups management
 	e.GET("/account/groups", acc(ShowGroups))
 	e.GET("/account/groups/:group", acc(ShowMembers))
-	e.POST("/account/groups/:csrf/addgroup", acc(AddGroup))
+	e.POST("/account/groups/:csrf/addgroup", acc(catch(AddGroup,
+		"group_error", "/groups")))
 	e.GET("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
 	e.GET("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
 	e.GET("/account/groups/:group/:csrf/add", acc(AddToGroup))
@@ -159,33 +160,33 @@ func Listen() {
 	e.GET("repo/:repo/:csrf/delrepo", acc(DeleteRepo))
 
 	// access management
-	e.GET("repo/:repo/access", acc(ShowAccess))
-	e.GET("repo/:repo/access/:csrf/add", acc(AddUserAccess))
-	e.GET("repo/:repo/access/:csrf/addg", acc(AddGroupAccess))
-	e.GET("repo/:repo/access/:user/:csrf/first",
+	e.GET("/account/repo/:repo/access", acc(ShowAccess))
+	e.GET("/account/repo/:repo/access/:csrf/add", acc(AddUserAccess))
+	e.GET("/account/repo/:repo/access/:csrf/addg", acc(AddGroupAccess))
+	e.GET("/account/repo/:repo/access/:user/:csrf/first",
 		acc(UserAccessFirstOption))
-	e.GET("repo/:repo/access/:user/:csrf/second",
+	e.GET("/account/repo/:repo/access/:user/:csrf/second",
 		acc(UserAccessSecondOption))
-	e.GET("repo/:repo/access/:group/g/:csrf/first",
+	e.GET("/account/repo/:repo/access/:group/g/:csrf/first",
 		acc(GroupAccessFirstOption))
-	e.GET("repo/:repo/access/:group/g/:csrf/second",
+	e.GET("/account/repo/:repo/access/:group/g/:csrf/second",
 		acc(GroupAccessSecondOption))
-	e.GET("repo/:repo/access/:user/:csrf/kick",
+	e.GET("/account/repo/:repo/access/:user/:csrf/kick",
 		acc(RemoveUserAccess))
-	e.GET("repo/:repo/access/:group/g/:csrf/kick",
+	e.GET("/account/repo/:repo/access/:group/g/:csrf/kick",
 		acc(RemoveGroupAccess))
 
 	// repository view
-	e.GET("repo/:repo", acc(RepoLog))
+	e.GET("/account/repo/:repo", acc(RepoLog))
 	/*e.GET("repo/:repo/", func(c gig.Context) error {
 		return c.NoContent(gig.StatusRedirectTemporary,
 			"/account/repo/" + c.Param("repo"))
 	})*/
-	e.GET("repo/:repo/license", acc(RepoLicense))
-	e.GET("repo/:repo/readme", acc(RepoReadme))
-	e.GET("repo/:repo/refs", acc(RepoRefs))
-	e.GET("repo/:repo/files", acc(RepoFiles))
-	e.GET("repo/:repo/files/:blob", acc(RepoFileContent))
+	e.GET("/account/repo/:repo/license", acc(RepoLicense))
+	e.GET("/account/repo/:repo/readme", acc(RepoReadme))
+	e.GET("/account/repo/:repo/refs", acc(RepoRefs))
+	e.GET("/account/repo/:repo/files", acc(RepoFiles))
+	e.GET("/account/repo/:repo/files/:blob", acc(RepoFileContent))
 
 	// user page
 	e.POST("/account/:csrf/chdesc", acc(ChangeDesc))
@@ -193,7 +194,8 @@ func Listen() {
 	e.GET("/account/:csrf/disconnect", acc(Disconnect))
 	e.GET("/account/:csrf/disconnectall", acc(DisconnectAll))
 	if !config.Cfg.Ldap.Enabled {
-		e.POST("/account/:csrf/chpasswd", acc(ChangePassword))
+		e.POST("/account/:csrf/chpasswd",
+			acc(catch(ChangePassword, "chpasswd_error", "")))
 	}
 	// otp
 	e.GET("/account/otp", acc(ShowOTP))

@@ -1,19 +1,24 @@
-=>. Go back
+<p>Account status : {{if .Secure}}Secure{{else}}Insecure{{end}}</p>
 
-> Account status : {{if .Secure}}Secure{{else}}Insecure{{end}}
+<h2>Settings</h2>
+<p>Password authentication for git operations is
+{{if .Secure}}disabled [Recommended]{{else}}enabled [Not recommended]{{end}}</p>
+<p><a href="/account/token/{{.CSRF}}/secure">{{if .Secure}}Enable{{else}}Disable{{end}}</a></p>
 
-# Settings
+<h2>Tokens</h2>
+{{if .User.Get "new_token"}}
+<h3>New token created</h3>
+<p>Copy this token : {{.User.GetOnce "new_token"}}</p>
+{{end}}
+<p><a href="/account/token/{{.CSRF}}/new">Create new token</a></p>
+<p><a href="/account/token/{{.CSRF}}/new_ro">Create new read-only token</a></p>
 
-=>token/{{.CSRF}}/secure {{if .Secure}}Enable{{else}}Disable{{end}} password authentication for git operations {{if .Secure}}[Not recommended]{{else}}[Recommended]{{end}}
-
-# Tokens
-
-=>token/{{.CSRF}}/new Create new token
-=>token/{{.CSRF}}/new_ro Create new read-only token
-
-{{ range .Tokens -}}
-* {{ .Hint }}... expires on {{ .ExpirationFormat }} {{if .ReadOnly}}[Read Only]{{end}}
-=>token/{{$.CSRF}}/delete/{{.ID}} Delete
-=>token/{{$.CSRF}}/renew/{{.ID}} Renew
-
-{{ end -}}
+<ul>
+{{range .Tokens}}
+<li>
+{{ .Hint }}... expires on {{ .ExpirationFormat }} {{if .ReadOnly}}[Read Only]{{end}}
+<p><a href="/account/token/{{$.CSRF}}/delete/{{.ID}}">Delete</a></p>
+<p><a href="/account/token/{{$.CSRF}}/renew/{{.ID}}">Renew</a></p>
+</li>
+{{end}}
+</ul>

@@ -37,7 +37,7 @@ func randomString(n int) string {
 func New(user db.User) error {
 	_, ok := tokens[user.Signature]
 	if ok { return nil }
-	token := randomString(16)
+	token := randomString(32)
 	tokens[user.Signature] = token
 	return nil
 }

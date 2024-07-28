@@ -302,12 +302,3 @@ func Register(username string, password string) error {
 			  "VALUES(?, " + unixTime + ")", username)
 	return err
 }
-
-var userErrors = map[string]string{}
-func (user User) AddError(name string, value string) {
-	userErrors[user.Signature + name] = value
-}
-
-func (user User) GetError(name string) string {
-	return userErrors[user.Signature + name]
-}

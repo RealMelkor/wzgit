@@ -1,14 +1,7 @@
-title: "Gemigit" # title on the main page
+title: "wzgit" # title on the main page
 database:
   type: "sqlite" # supported : sqlite(doesn't require cgo), sqlite3, mysql
-  url: "gemigit.db" # connection string or sqlite3 database path
-
-gemini:
-  certificate: "cert.pem" # SSL certificate
-  key: "key.pem" # private key
-  address: "0.0.0.0" # address to listen on
-  port: 1965 # bind port for gemini request
-  staticDirectory: "./static" # serve a static directory (optional)
+  url: "wzgit.db" # connection string or sqlite3 database path
 
 git:
   http:
@@ -22,14 +15,10 @@ git:
     domain: "localhost:2222" # domain displayed for the ssh git server
     address: "0.0.0.0" # address to listen on
     port: 2222 # bind port for ssh git request
-  remote:
-    enabled: false # read from a remote git server
-    address: "https://git.example.com" # address to fetch repositories from
-    key: "CHANGEME" # master key to send to the remote server
+    key: "ssh.key" # private key
   path: "./repos" # path to repositories directory
   public: true # allow non-registered users to see public repositories
   maximumCommits: 100 # maximum number of commits shown on log pages
-  #key: "CHANGEME" # master key having read/write access on all repositories
 
 ldap:
   enabled: false # logging using ldap credential
@@ -42,6 +31,6 @@ users:
 
 protection:
   ip: 10 # Maximum connection attempts before the ip is blocked
-  account: 30 # Maximum connection attempts before the account is blocked
+  account: 50 # Maximum connection attempts before the account is blocked
   registration: 5 # Maximum number of registration per ip
   reset: 120 # Number of seconds before clearing the block on ip/accounts

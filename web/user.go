@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"errors"
 	"net/url"
-        "gemigit/db"
-        "gemigit/repo"
-        "gemigit/config"
+        "wzgit/db"
+        "wzgit/repo"
+        "wzgit/config"
 
 	"github.com/labstack/echo/v4"
 )

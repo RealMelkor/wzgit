@@ -1,7 +1,7 @@
 package web 
 
 import (
-	"gemigit/db"
+	"wzgit/db"
 	"net/http"
 	"errors"
 

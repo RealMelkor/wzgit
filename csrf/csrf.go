@@ -3,7 +3,7 @@ package csrf
 import (
 	"errors"
 	"crypto/rand"
-	"gemigit/db"
+	"wzgit/db"
 
 	"github.com/labstack/echo/v4"
 )

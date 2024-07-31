@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"errors"
 
-	"gemigit/db"
+	"wzgit/db"
 
 	"github.com/labstack/echo/v4"
 )

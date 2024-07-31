@@ -10,13 +10,6 @@ type Config struct {
 		Type		string `validate:"required"`
 		Url		string `validate:"required"`
 	}
-	Gemini struct {
-		Certificate	string `validate:"required"`
-		Key		string `validate:"required"`
-		Address		string `validate:"required"`
-		Port		string `validate:"required"`
-		StaticDirectory	string
-	}
 	Web struct {
 		Domain		string `default:"localhost"`
 		Host		string `default:":8080"`
@@ -36,6 +29,7 @@ type Config struct {
 			Domain		string	`validate:"required"`
 			Address 	string  `validate:"required"`
 			Port		int	`validate:"required"`
+			Key		string	`validate:"required"`
 		}
 		Path		string	`validate:"required"`
 		Public		bool
@@ -62,7 +56,7 @@ func LoadConfig() error {
 	err := fig.Load(
 		&Cfg,
 		fig.File("config.yaml"),
-		fig.Dirs(".", "/etc/gemigit", "/usr/local/etc/gemigit"),
+		fig.Dirs(".", "/etc/wzgit", "/usr/local/etc/gemigit"),
 	)
 	if err == nil && Cfg.Ldap.Enabled {
 		Cfg.Users.Registration = false

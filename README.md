@@ -1,6 +1,6 @@
-# Gemigit
+# wzgit
 
-A software forge for the [gemini protocol][0]
+A minimalist software forge
 
 ## Features
 
@@ -14,22 +14,20 @@ A software forge for the [gemini protocol][0]
 * User groups
 * Privilege system for read/write access
 * Support for sqlite and mysql databases
-* Support stateless mode for multiple instances and load balancing
 
 ## Requirements
 
 * go (at compile-time)
 * git (at run-time)
-* openssl (to create certificate)
 
 ### Fedora, RedHat
 ```
-dnf install git golang openssl
+dnf install git golang
 ```
 
 ### Debian, Ubuntu
 ```
-apt install git golang openssl
+apt install git golang
 ```
 
 ## Setup
@@ -38,35 +36,28 @@ apt install git golang openssl
 ```
 go build
 ```
-* Copy config.yaml into either /etc/gemigit, /usr/local/etc/gemigit or the working directory where Gemigit will be executed
-* Create a new certificate with the following command, you can change localhost to the domain name you want to use : 
-```
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj '/CN=localhost'
-```
+* Copy config.yaml into either /etc/wzgit, /usr/local/etc/wzgit or the working directory
 * Edit the configuration file as you want
-* Execute gemigit
+* Execute wzgit
 
-On Linux, Gemigit can be run as a systemd service :
+On Linux, wzgit can be run as a systemd service :
 ```
-adduser -d /var/lib/gemigit -m -U gemigit
-cp service/gemigit.service /etc/systemd/system/
+adduser -d /var/lib/wzgit -m -U wzgit
+cp ./service/wzgit.service /etc/systemd/system/
 go build
-cp gemigit /usr/bin/gemigit
-mkdir /etc/gemigit
-cp config.yaml /etc/gemigit/
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj '/CN=localhost'
-cp *.pem /var/lib/gemigit/
-chown -R gemigit:gemigit /var/lib/gemigit
-systemctl enable --now gemigit
+cp ./wzgit /usr/bin/wzgit
+mkdir /etc/wzgit
+cp ./config.yaml /etc/wzgit/
+chown -R wzgit:wzgit /var/lib/wzgit
+systemctl enable --now wzgit
 ```
 
 ## Demo
 
-You can try a public instance of Gemigit at this address gemini://gmi.rmf-dev.com using a Gemini client or with a [gemini web proxy][1].
+You can try a public instance of wzgit at this address: [https://git.rmf-dev.com][0]
 
 ## Contact
 
-For inquiries about this software or the instance running at gemini://gmi.rmf-dev.com, you can contact the main maintainer of this project at : inquiry@rmf-dev.com
+For inquiries about this software or the instance running at https://git.rmf-dev.com, you can contact the main maintainer of this project at : inquiry@rmf-dev.com
 
-[0]: https://geminiprotocol.net/
-[1]: https://portal.mozz.us/gemini/gmi.rmf-dev.com/
+[0]: https://git.rmf-dev.com

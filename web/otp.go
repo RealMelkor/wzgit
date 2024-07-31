@@ -1,9 +1,9 @@
 package web
 
 import (
-	"gemigit/auth"
-	"gemigit/config"
-	"gemigit/db"
+	"wzgit/auth"
+	"wzgit/config"
+	"wzgit/db"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pquerna/otp/totp"

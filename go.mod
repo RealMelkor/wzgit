@@ -1,4 +1,4 @@
-module gemigit
+module wzgit
 
 go 1.18
 

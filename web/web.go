@@ -14,10 +14,10 @@ import (
         "github.com/tdewolff/minify/v2/html"
 	"github.com/labstack/echo/v4"
 
-	"gemigit/config"
-	"gemigit/db"
-	"gemigit/csrf"
-	"gemigit/httpgit"
+	"wzgit/config"
+	"wzgit/db"
+	"wzgit/csrf"
+	"wzgit/httpgit"
 )
 
 //go:embed static/*
@@ -162,7 +162,7 @@ func found(dst string) echo.HandlerFunc {
 	}
 }
 
-func Listen() {
+func Listen() error {
 	e := echo.New()
 	e.GET("/robots.txt", static("robots.txt"))
 	e.GET("/css/:path", staticCSS)
@@ -207,10 +207,6 @@ func Listen() {
 
 	// repository view
 	e.GET("/account/repo/:repo", acc(RepoLog))
-	/*e.GET("repo/:repo/", func(c gig.Context) error {
-		return c.NoContent(gig.StatusRedirectTemporary,
-			"/account/repo/" + c.Param("repo"))
-	})*/
 	e.GET("/account/repo/:repo/license", acc(RepoLicense))
 	e.GET("/account/repo/:repo/readme", acc(RepoReadme))
 	e.GET("/account/repo/:repo/refs", acc(RepoRefs))
@@ -239,17 +235,6 @@ func Listen() {
 	e.GET("/account/token/:csrf/renew/:token", acc(RenewToken))
 	e.GET("/account/token/:csrf/delete/:token", acc(DeleteToken))
 
-	/*if config.Cfg.Git.Public {
-		public = g.Group("/repo")
-	} else {
-		public = g.Group("/repo", gig.PassAuth(
-			func(sig string, c gig.Context) (string, error) {
-				_, exist := db.GetUser(sig)
-				if !exist { return "/", nil }
-				return "", nil
-			}))
-	}*/
-
 	e.GET("/repo", PublicList)
 	e.GET("/repo/:user/:repo/*", PublicFile)
 	e.GET("/repo/:user", PublicAccount)
@@ -269,12 +254,12 @@ func Listen() {
 
 	if config.Cfg.Git.Http.Enabled {
 		e.GET("/git/:user/:repo",
-			echo.WrapHandler(httpgit.Listen(config.Cfg.Git.Path)))
+			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
 		e.POST("/git/:user/:repo",
-			echo.WrapHandler(httpgit.Listen(config.Cfg.Git.Path)))
+			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
 	}
 
 	e.Use(Logger)
 
-	e.Logger.Fatal(e.Start(config.Cfg.Web.Host))
+	return e.Start(config.Cfg.Web.Host)
 }

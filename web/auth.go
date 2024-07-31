@@ -5,8 +5,8 @@ import (
 	"errors"
 	"encoding/base64"
 	"net/http"
-	"gemigit/auth"
-	"gemigit/config"
+	"wzgit/auth"
+	"wzgit/config"
 
 	"github.com/labstack/echo/v4"
 )

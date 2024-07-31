@@ -7,8 +7,8 @@ import (
 	"io"
 	"bytes"
 
-	"gemigit/db"
-	"gemigit/repo"
+	"wzgit/db"
+	"wzgit/repo"
 
 	"github.com/labstack/echo/v4"
 	"github.com/gabriel-vasile/mimetype"

@@ -2,7 +2,7 @@ package repo
 
 import (
 	"errors"
-	"gemigit/db"
+	"wzgit/db"
 	"io"
 	"os"
 	"time"

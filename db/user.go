@@ -3,7 +3,7 @@ package db
 import (
 	"errors"
 	"time"
-	"gemigit/config"
+	"wzgit/config"
 )
 
 const descriptionMaxLength = 128

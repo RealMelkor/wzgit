@@ -2,9 +2,9 @@ package sshgit
 
 import (
 	"github.com/gliderlabs/ssh"
-	"gemigit/access"
-	"gemigit/config"
-	"gemigit/db"
+	"wzgit/access"
+	"wzgit/config"
+	"wzgit/db"
 	"log"
 	"strconv"
 	"strings"
@@ -127,7 +127,7 @@ func Listen(path string, address string, port int) {
 			ctx.SetValue("password", password)
 			return true
 		})
-	data, err := os.ReadFile(config.Cfg.Gemini.Key)
+	data, err := os.ReadFile(config.Cfg.Git.SSH.Key)
 	if err != nil {
 		log.Fatalln(err)
 		return

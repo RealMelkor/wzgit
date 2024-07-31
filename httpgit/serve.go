@@ -1,9 +1,9 @@
 package httpgit
 
 import (
-	"gemigit/access"
-	"gemigit/config"
-	"gemigit/db"
+	"wzgit/access"
+	"wzgit/config"
+	"wzgit/db"
 	"log"
 	"net/http"
 	"strings"
@@ -12,7 +12,7 @@ import (
 	githttpxfer "github.com/nulab/go-git-http-xfer/githttpxfer"
 )
 
-func Listen(path string) http.Handler {
+func Handle(path string) http.Handler {
 	ghx, err := githttpxfer.New(path, "git")
 	if err != nil {
 		log.Fatalln("GitHTTPXfer instance could not be created. ",

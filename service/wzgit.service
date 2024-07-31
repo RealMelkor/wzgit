@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 StandardOutput=journal
-WorkingDirectory=/var/lib/gemigit
-ExecStart=/usr/bin/gemigit
-User=gemigit
-Group=gemigit
+WorkingDirectory=/var/lib/wzgit
+ExecStart=/usr/bin/wzgit
+User=wzgit
+Group=wzgit
 
 [Install]
 WantedBy=multi-user.target

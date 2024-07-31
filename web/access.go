@@ -1,7 +1,7 @@
 package web
 
 import (
-	"gemigit/db"
+	"wzgit/db"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

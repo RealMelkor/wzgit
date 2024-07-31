@@ -2,9 +2,9 @@ package auth
 
 import (
 	"errors"
-	"gemigit/config"
-	"gemigit/db"
-	"gemigit/access"
+	"wzgit/config"
+	"wzgit/db"
+	"wzgit/access"
 	"time"
 
 	"github.com/pquerna/otp/totp"

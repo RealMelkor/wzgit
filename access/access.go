@@ -3,8 +3,8 @@ package access
 import (
 	"errors"
 	"fmt"
-	"gemigit/config"
-	"gemigit/db"
+	"wzgit/config"
+	"wzgit/db"
 
 	ldap "github.com/go-ldap/ldap/v3"
 )

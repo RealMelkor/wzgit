@@ -86,24 +86,19 @@ func TogglePublic(c echo.Context, user db.User) error {
 }
 
 func ChangeRepoName(c echo.Context, user db.User) error {
-	newname := c.QueryString()
-	// should check if repo exist and if the new name is free
-	if err := repo.ChangeRepoDir(c.Param("repo"), user.Name, newname);
-	   err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	if err := user.ChangeRepoName(c.Param("repo"), newname);
-
-	   err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	newname := c.Request().PostFormValue("name")
+	// should check if repo exist and if the new name is available
+	err := repo.ChangeRepoDir(c.Param("repo"), user.Name, newname)
+	if err != nil { return err }
+	err = user.ChangeRepoName(c.Param("repo"), newname)
+	if err != nil { return err }
 	return redirect(c, "/repo/" + newname)
 }
 
 func ChangeRepoDesc(c echo.Context, user db.User) error {
-	newdesc := c.QueryString()
+	newdesc := c.Request().PostFormValue("desc")
 	if err := user.ChangeRepoDesc(c.Param("repo"), newdesc); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return err
 	}
 	return redirect(c, "/repo/" + c.Param("repo"))
 }
@@ -111,6 +106,7 @@ func ChangeRepoDesc(c echo.Context, user db.User) error {
 func DeleteRepo(c echo.Context, user db.User) error {
 	name := c.QueryString()
 	if name != c.Param("repo") {
+		user.Set("repo_delete_confirm", c.Param("repo"))
 		return redirect(c, "/repo/" + c.Param("repo"))
 	}
 	// check if repo exist

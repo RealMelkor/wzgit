@@ -165,6 +165,7 @@ func found(dst string) echo.HandlerFunc {
 func Listen() error {
 	e := echo.New()
 	e.GET("/robots.txt", static("robots.txt"))
+	e.GET("/static/favicon.png", static("favicon.png"))
 	e.GET("/css/:path", staticCSS)
 
 	e.GET("/account", acc(ShowAccount))
@@ -184,14 +185,16 @@ func Listen() error {
 	e.GET("/account/repo", found("/account"))
 	e.GET("/account/repo/:repo/*", acc(RepoFile))
 	e.GET("/account/repo/:repo/:csrf/togglepublic", acc(TogglePublic))
-	e.GET("/account/repo/:repo/:csrf/chname", acc(ChangeRepoName))
-	e.GET("/account/repo/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
-	e.GET("/account/repo/:repo/:csrf/delrepo", acc(DeleteRepo))
+	e.POST("/account/repo/:repo/:csrf/chname", acc(ChangeRepoName))
+	e.POST("/account/repo/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
+	e.GET("/account/repo/:repo/:csrf/delete", acc(DeleteRepo))
 
 	// access management
 	e.GET("/account/repo/:repo/access", acc(ShowAccess))
-	e.GET("/account/repo/:repo/access/:csrf/add", acc(AddUserAccess))
-	e.GET("/account/repo/:repo/access/:csrf/addg", acc(AddGroupAccess))
+	e.POST("/account/repo/:repo/access/:csrf/add",
+		acc(catch(AddUserAccess, "access_user_error", "..")))
+	e.POST("/account/repo/:repo/access/:csrf/addg",
+		acc(catch(AddGroupAccess, "access_group_error", "..")))
 	e.GET("/account/repo/:repo/access/:user/:csrf/first",
 		acc(UserAccessFirstOption))
 	e.GET("/account/repo/:repo/access/:user/:csrf/second",

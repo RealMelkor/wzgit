@@ -1,30 +1,40 @@
-=>. Go back
+<h2>{{$.Repo}}</h2>
 
-# {{ .Repo }}
+<form action="/account/repo/{{.Repo}}/access/{{.CSRF}}/add" method="POST">
+	<span style="white-space: nowrap">Add user:</span>
+	<input class="field" type="text" name="name">
+	<input class="btn" type="submit" value="Add">
+</form>
+<p>{{.User.GetOnce "access_user_error"}}</p>
+<form action="/account/repo/{{.Repo}}/access/{{.CSRF}}/addg" method="POST">
+	<span style="white-space: nowrap">Add group:</span>
+	<input class="field" type="text" name="group">
+	<input class="btn" type="submit" value="Add">
+</form>
+<p>{{.User.GetOnce "access_group_error"}}</p>
 
-=>access/{{.CSRF}}/add Add user
-=>access/{{.CSRF}}/addg Add group
+<h3>Collaborators</h3>
 
-## Collaborators
-
-{{ range .Collaborators -}}
-* {{ .Name }} - Privilege : {{.Privilege | AccessPrivilege}}
+<ul>
+{{range .Collaborators}}
+<li>{{ .Name }} - Privilege : {{.Privilege | AccessPrivilege}}</li>
 {{if $.Owner -}}
-=>access/{{.Name}}/{{$.CSRF}}/first {{.Privilege | AccessFirst}}
-=>access/{{.Name}}/{{$.CSRF}}/second {{.Privilege | AccessSecond}}
-=>access/{{.Name}}/{{$.CSRF}}/kick Remove
+<p><a href="/account/repo/{{$.Repo}}/access/{{.Name}}/{{$.CSRF}}/first">{{.Privilege | AccessFirst}}</a></p>
+<p><a href="/account/repo/{{$.Repo}}/access/{{.Name}}/{{$.CSRF}}/second">{{.Privilege | AccessSecond}}</a></p>
+<p><a href="/account/repo/{{$.Repo}}/access/{{.Name}}/{{$.CSRF}}/kick">Remove</a></p>
+{{end}}
+{{end}}
+</ul>
 
-{{end -}}
-{{end -}}
+<h3>Groups</h3>
 
-## Groups
-
+<ul>
 {{ range .Groups -}}
-* {{ .Name }} - Privilege : {{.Privilege | AccessPrivilege}}
+<li>{{ .Name }} - Privilege : {{.Privilege | AccessPrivilege}}</li>
 {{if $.Owner -}}
-=>access/{{.Name}}/g/{{$.CSRF}}/first {{.Privilege | AccessFirst}}
-=>access/{{.Name}}/g/{{$.CSRF}}/second {{.Privilege | AccessSecond}}
-=>access/{{.Name}}/g/{{$.CSRF}}/kick Remove
-
-{{end -}}
-{{end -}}
+<p><a href="/account/repo/{{$.Repo}}/access/{{.Name}}/g/{{$.CSRF}}/first">{{.Privilege | AccessFirst}}</a></p>
+<p><a href="/account/repo/{{$.Repo}}/access/{{.Name}}/g/{{$.CSRF}}/second">{{.Privilege | AccessSecond}}</a></p>
+<p><a href="/account/repo/{{$.Repo}}/access/{{.Name}}/g/{{$.CSRF}}/kick">Remove</a>
+{{end}}
+{{end}}
+</ul>

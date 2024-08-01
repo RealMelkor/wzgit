@@ -1,26 +1,37 @@
-<h2>{{ .Repo }} by {{ .User }}</h2>
-<p><a href="/repo/{{.User}}">View account</a></p>
+<h2>{{ .Repo }} by <a href="/repo/{{.Author}}">{{ .Author }}</a></h2>
 {{if .Description -}}
-<p>{{ .Description }}</p>
+<h3>{{ .Description }}</h3>
 {{end -}}
 {{- if .HasHTTP -}}
-<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/git/{{ .User }}/{{ .Repo }}</p>
+<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/git/{{ .Author }}/{{ .Repo }}</p>
 {{- end -}}
 {{- if and .HasHTTP .HasSSH }}
 {{ end -}}
 {{- if .HasSSH -}}
-<p>git clone ssh://{{ .LoggedAs }}{{ .SshDomain }}/{{ .User }}/{{ .Repo }}</p>
+<p>git clone ssh://{{ .LoggedAs }}{{ .SshDomain }}/{{ .Author }}/{{ .Repo }}</p>
 {{- end }}
 
 {{if .Owner}}
 <p><a href="/account/repo/{{.Repo}}/access">Collaborators</a></p>
-<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/chname">Change repository name</a></p>
-<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/chdesc">Change repository description</a></p>
+<form action="/account/repo/{{.Repo}}/{{.CSRF}}/chname" method="POST">
+	<span style="white-space: nowrap">Change repository name:</span>
+	<input class="field" type="text" name="name">
+	<input class="btn" type="submit" value="Update">
+</form>
+<form action="/account/repo/{{.Repo}}/{{.CSRF}}/chdesc" method="POST">
+	<span style="white-space: nowrap">Change repository description:</span>
+	<input class="field" type="text" name="desc">
+	<input class="btn" type="submit" value="Update">
+</form>
 <p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/togglepublic">Make the repository {{if .Public}}private{{else}}public {{end }}</a></p>
-<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/delrepo">Delete repository</a></p>
+<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/delete?{{.User.Get "repo_delete_confirm"}}">Delete repository</a>
+{{if .User.GetOnce "repo_delete_confirm"}}
+ (Click again to confirm)
+{{end}}</p>
+
 {{end}}
 
-{{$prefix := print "/repo/" .User "/" .Repo}}
+{{$prefix := print "/repo/" .Author "/" .Repo}}
 {{if .Owner}}
 {{$prefix = print "/account/repo/" .Repo}}
 {{end}}

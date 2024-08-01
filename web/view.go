@@ -355,7 +355,13 @@ func showRepoLicense(name string, author string) (string, error) {
 
 func showRepoReadme(name string, author string) (any, error) {
 	content, err := showRepoFile(author, name, "README.md")
-	if err != nil { return "", errors.New("No readme found") }
+	if err != nil {
+		content, err = showRepoFile(author, name, "README")
+		if err != nil {
+			return "", errors.New("No readme found")
+		}
+		return content, nil
+	}
 	return template.HTML(mdToHTML([]byte(content))), nil
 }
 
@@ -409,13 +415,14 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 	}
 
 	data := struct {
+		User db.User
 		HasHTTP bool
 		HttpProtocol string
 		HttpDomain string
 		HasSSH bool
 		SshDomain string
 		LoggedAs string
-		User string
+		Author string
 		Description string
 		Repo string
 		Public bool
@@ -426,19 +433,19 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		CSRF string
 		Page string
 	}{
+		User: user,
 		HasHTTP: config.Cfg.Git.Http.Enabled,
 		HttpProtocol: protocol,
 		HttpDomain: config.Cfg.Git.Http.Domain,
 		HasSSH: config.Cfg.Git.SSH.Enabled,
 		SshDomain: config.Cfg.Git.SSH.Domain,
 		LoggedAs: loggedAs,
-		User: author,
+		Author: author,
 		Description: desc,
 		Repo: name,
 		Public: public,
 		Owner: owner,
-		HasReadme: hasFile(name, author, "README.html") ||
-			   hasFile(name, author, "README.md") ||
+		HasReadme: hasFile(name, author, "README.md") ||
 			   hasFile(name, author, "README"),
 		HasLicense: hasFile(name, author, "LICENSE"),
 		Content: content,
@@ -485,24 +492,20 @@ func PublicAccount(c echo.Context) error {
 
 func ShowAccess(c echo.Context, user db.User) error {
 	repo, err := user.GetRepo(c.Param("repo"))
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
 	access, err := db.GetRepoUserAccess(repo.ID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
 	groups, err := db.GetRepoGroupAccess(repo.ID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
 	data := struct {
+		User db.User
 		Repo string
 		Collaborators []db.Access
 		Groups []db.Access
 		Owner bool
 		CSRF string
 	}{
+		User: user,
 		Repo: repo.Name,
 		Collaborators: access,
 		Groups: groups,

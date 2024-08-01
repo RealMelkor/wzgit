@@ -1,6 +1,5 @@
-<p>Account status : {{if .Secure}}Secure{{else}}Insecure{{end}}</p>
-
 <h2>Settings</h2>
+<p>Account status : {{if .Secure}}Secure{{else}}Insecure{{end}}</p>
 <p>Password authentication for git operations is
 {{if .Secure}}disabled [Recommended]{{else}}enabled [Not recommended]{{end}}</p>
 <p><a href="/account/token/{{.CSRF}}/secure">{{if .Secure}}Enable{{else}}Disable{{end}}</a></p>

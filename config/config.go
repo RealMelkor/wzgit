@@ -56,7 +56,7 @@ func LoadConfig() error {
 	err := fig.Load(
 		&Cfg,
 		fig.File("config.yaml"),
-		fig.Dirs(".", "/etc/wzgit", "/usr/local/etc/gemigit"),
+		fig.Dirs(".", "/etc/wzgit", "/usr/local/etc/wzgit"),
 	)
 	if err == nil && Cfg.Ldap.Enabled {
 		Cfg.Users.Registration = false

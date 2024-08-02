@@ -15,7 +15,8 @@ import (
 )
 
 func redirect(c echo.Context, after string) error {
-	return c.Redirect(http.StatusFound, "/account" + after)
+	return c.Redirect(http.StatusFound,
+		"/" + c.Param("user") + after)
 }
 
 func showFileContent(content string) string {
@@ -48,16 +49,12 @@ func serveFile(c echo.Context, name string, user string, file string) error {
 func RepoFiles(c echo.Context, user db.User) error {
 	query := c.QueryString()
 	if query == "" {
-		return showRepo(c, user, pageFiles, true)
+		return showRepo(c, user, pageFiles)
 	}
 	repofile, err := repo.GetFile(c.Param("repo"), user.Name, query)
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
 	contents, err := repofile.Contents()
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
 	return c.HTML(http.StatusOK, contents)
 }
 
@@ -72,17 +69,14 @@ func RepoFileContent(c echo.Context, user db.User) error {
 }
 
 func RepoFile(c echo.Context, user db.User) error {
-	err := serveFile(c, c.Param("repo"), user.Name, c.Param("*"))
-	if err != nil { return c.String(http.StatusBadRequest, err.Error()) }
-	return nil
+	return serveFile(c, c.Param("repo"), user.Name, c.Param("*"))
 }
 
 func TogglePublic(c echo.Context, user db.User) error {
-	if err := user.TogglePublic(c.Param("repo"));
-	   err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+	if err := user.TogglePublic(c.Param("repo")); err != nil {
+		return err
 	}
-	return redirect(c, "/repo/" + c.Param("repo"))
+	return redirect(c, "/" + c.Param("repo"))
 }
 
 func ChangeRepoName(c echo.Context, user db.User) error {
@@ -92,7 +86,7 @@ func ChangeRepoName(c echo.Context, user db.User) error {
 	if err != nil { return err }
 	err = user.ChangeRepoName(c.Param("repo"), newname)
 	if err != nil { return err }
-	return redirect(c, "/repo/" + newname)
+	return redirect(c, "/" + newname)
 }
 
 func ChangeRepoDesc(c echo.Context, user db.User) error {
@@ -100,39 +94,33 @@ func ChangeRepoDesc(c echo.Context, user db.User) error {
 	if err := user.ChangeRepoDesc(c.Param("repo"), newdesc); err != nil {
 		return err
 	}
-	return redirect(c, "/repo/" + c.Param("repo"))
+	return redirect(c, "/" + c.Param("repo"))
 }
 
 func DeleteRepo(c echo.Context, user db.User) error {
 	name := c.QueryString()
 	if name != c.Param("repo") {
 		user.Set("repo_delete_confirm", c.Param("repo"))
-		return redirect(c, "/repo/" + c.Param("repo"))
+		return redirect(c, "/" + c.Param("repo"))
 	}
 	// check if repo exist
-	if err := repo.RemoveRepo(name, user.Name);
-	   err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
-	if err := user.DeleteRepo(name);
-	   err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err := repo.RemoveRepo(name, user.Name); err != nil { return err }
+	if err := user.DeleteRepo(name); err != nil { return err }
 	return redirect(c, "")
 }
 
 func RepoRefs(c echo.Context, user db.User) error {
-	return showRepo(c, user, pageRefs, true)
+	return showRepo(c, user, pageRefs)
 }
 
 func RepoLicense(c echo.Context, user db.User) error {
-	return showRepo(c, user, pageLicense, true)
+	return showRepo(c, user, pageLicense)
 }
 
 func RepoReadme(c echo.Context, user db.User) error {
-	return showRepo(c, user, pageReadme, true)
+	return showRepo(c, user, pageReadme)
 }
 
 func RepoLog(c echo.Context, user db.User) error {
-	return showRepo(c, user, pageLog, true)
+	return showRepo(c, user, pageLog)
 }

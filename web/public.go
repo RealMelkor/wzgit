@@ -2,16 +2,15 @@ package web
 
 import (
 	"wzgit/repo"
-	"wzgit/db"
+	//"wzgit/httpgit"
+	//"wzgit/config"
 	"net/http"
 	"github.com/labstack/echo/v4"
 	"io"
 )
 
 func PublicFile(c echo.Context) error {
-	err := serveFile(c, c.Param("repo"), c.Param("user"), c.Param("*"))
-	if err != nil { return c.String(http.StatusBadRequest, err.Error()) }
-	return nil
+	return serveFile(c, c.Param("repo"), c.Param("user"), c.Param("*"))
 }
 
 func PublicFileContent(c echo.Context) error {
@@ -25,21 +24,30 @@ func PublicFileContent(c echo.Context) error {
 }
 
 func PublicRefs(c echo.Context) error {
-	return showRepo(c, db.User{}, pageRefs, false)
+	user, _ := getUser(c)
+	return showRepo(c, user, pageRefs)
 }
 
 func PublicLicense(c echo.Context) error {
-	return showRepo(c, db.User{}, pageLicense, false)
+	user, _ := getUser(c)
+	return showRepo(c, user, pageLicense)
 }
 
 func PublicReadme(c echo.Context) error {
-	return showRepo(c, db.User{}, pageReadme, false)
+	user, _ := getUser(c)
+	return showRepo(c, user, pageReadme)
 }
 
 func PublicLog(c echo.Context) error {
-	return showRepo(c, db.User{}, pageLog, false)
+	/*if c.QueryString() != "" {
+		return echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path))(c)
+	}
+	*/
+	user, _ := getUser(c)
+	return showRepo(c, user, pageLog)
 }
 
 func PublicFiles(c echo.Context) error {
-	return showRepo(c, db.User{}, pageFiles, false)
+	user, _ := getUser(c)
+	return showRepo(c, user, pageFiles)
 }

@@ -14,7 +14,6 @@ import (
 	"strings"
 	"html/template"
 	"embed"
-	"net/http"
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -110,10 +109,7 @@ func ShowAccount(c echo.Context, user db.User) (error) {
 	}
 	accessRepos, err := user.HasReadAccessTo()
 	sessions, err := user.GetSessionsCount()
-	if err != nil {
-		log.Println(err)
-		return c.String(http.StatusBadRequest, "Unexpected error")
-	}
+	if err != nil { return err }
 	if sessions == 1 {
 		sessions = 0
 	}
@@ -151,33 +147,18 @@ func ShowGroups(c echo.Context, user db.User) (error) {
 func ShowMembers(c echo.Context, user db.User) (error) {
 	group := c.Param("group")
 	isOwner, err := user.IsInGroup(group)
-	if err != nil {
-		return c.String(http.StatusBadRequest,
-				   "Group not found")
-	}
+	if err != nil { return err }
 	members, err := user.GetMembers(group)
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusInternalServerError,
-				   "Failed to fetch group members")
-	}
+	if err != nil { return err }
 	desc, err := db.GetGroupDesc(group)
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusInternalServerError,
-				   "Failed to fetch group description")
-	}
+	if err != nil { return err }
 
 	owner := ""
 	if isOwner {
 		owner = user.Name
 	} else {
 		m, err := db.GetGroupOwner(group)
-		if err != nil {
-			log.Println(err.Error())
-			return c.String(http.StatusBadRequest,
-					   "Failed to fetch group owner")
-		}
+		if err != nil { return err }
 		owner = m.Name
 	}
 
@@ -203,25 +184,18 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 	return render(c, "group.html", data)
 }
 
-func getRepo(c echo.Context, user db.User, owner bool) (string, string, error) {
-        username := ""
-        if owner {
-                username = user.Name
-        } else {
-                username = c.Param("user")
-                ret, err := db.IsRepoPublic(c.Param("repo"), c.Param("user"))
-		if !ret {
-			err := access.HasReadAccess(c.Param("repo"),
-						    c.Param("user"),
-						    user.Name)
-			ret = err == nil
-		}
-                if !ret || err != nil {
-                        return "", "", c.String(http.StatusBadRequest,
-				"No repository called " + c.Param("repo") +
-                                " by user " + c.Param("user"))
-                }
-        }
+func getRepo(c echo.Context, user db.User) (string, string, error) {
+	username := c.Param("user")
+	ret, err := db.IsRepoPublic(c.Param("repo"), c.Param("user"))
+	if !ret {
+		err := access.HasReadAccess(c.Param("repo"),
+					    c.Param("user"),
+					    user.Name)
+		ret = err == nil
+	}
+	if !ret || err != nil {
+		return "", "", err
+	}
 	return username, c.Param("repo"), nil
 }
 
@@ -365,27 +339,16 @@ func showRepoReadme(name string, author string) (any, error) {
 	return template.HTML(mdToHTML([]byte(content))), nil
 }
 
-func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
+func showRepo(c echo.Context, user db.User, page int) (error) {
 	loggedAs := ""
-	author, name, err := getRepo(c, user, owner)
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	author, name, err := getRepo(c, user)
+	if err != nil { return err }
 	desc, err := db.GetRepoDesc(name, author)
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusBadRequest, "Repository not found")
-	}
+	if err != nil { return err }
 	protocol := "http"
-	if config.Cfg.Git.Http.Https {
-		protocol = "https"
-	}
+	if config.Cfg.Git.Http.Https { protocol = "https" }
 	public, err := db.IsRepoPublic(name, author)
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusBadRequest, "Repository not found")
-	}
+	if err != nil { return err }
 	if public && config.Cfg.Git.Public {
 		loggedAs = "anon@"
 	}
@@ -409,10 +372,7 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		content, err = showRepoReadme(name, author)
 		contentType = "readme"
 	}
-	if err != nil {
-		return c.String(http.StatusBadRequest,
-				   "Invalid repository")
-	}
+	if err != nil { return err }
 
 	data := struct {
 		User db.User
@@ -444,7 +404,7 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		Description: desc,
 		Repo: name,
 		Public: public,
-		Owner: owner,
+		Owner: author == user.Name,
 		HasReadme: hasFile(name, author, "README.md") ||
 			   hasFile(name, author, "README"),
 		HasLicense: hasFile(name, author, "LICENSE"),
@@ -452,32 +412,20 @@ func showRepo(c echo.Context, user db.User, page int, owner bool) (error) {
 		CSRF: csrf.Token(user.Signature),
 		Page: contentType,
 	}
-	if owner {
-		return render(c, "repo.html", data)
-	}
 	return render(c, "repo.html", data)
 }
 
 func PublicList(c echo.Context) (error) {
 	repos, err := db.GetPublicRepo()
-	if err != nil {
-		log.Println(err.Error())
-		return c.String(http.StatusInternalServerError,
-				   "Internal error, " + err.Error())
-	}
+	if err != nil { return err }
 	return render(c, "public_list.html", repos)
 }
 
 func PublicAccount(c echo.Context) error {
 	user, err := db.GetPublicUser(c.Param("user"))
-	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
-	}
+	if err != nil { return err }
 	repos, err := user.GetRepos(true)
-	if err != nil {
-		return c.Redirect(http.StatusFound,
-				   "Invalid account, " + err.Error())
-	}
+	if err != nil { return err }
 	data := struct {
 		Name string
 		Description string

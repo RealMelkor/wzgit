@@ -1,40 +1,41 @@
-<h2>{{ .Repo }} by <a href="/repo/{{.Author}}">{{ .Author }}</a></h2>
-{{if .Description -}}
+<h2>{{ .Repo }} by <a href="/{{.Author}}">{{ .Author }}</a></h2>
+{{if .Description}}
 <h3>{{ .Description }}</h3>
-{{end -}}
-{{- if .HasHTTP -}}
-<p>git clone {{ .HttpProtocol }}://{{ .HttpDomain }}/git/{{ .Author }}/{{ .Repo }}</p>
-{{- end -}}
-{{- if and .HasHTTP .HasSSH }}
-{{ end -}}
-{{- if .HasSSH -}}
-<p>git clone ssh://{{ .LoggedAs }}{{ .SshDomain }}/{{ .Author }}/{{ .Repo }}</p>
-{{- end }}
+{{end}}
+{{if .HasHTTP}}
+<p>git clone {{.HttpProtocol}}://{{.HttpDomain}}/{{.Author}}/{{.Repo}}</p>
+{{end}}
+{{if .HasSSH}}
+<p>git clone ssh://{{.LoggedAs}}{{.SshDomain}}/{{.Author}}/{{.Repo}}</p>
+{{end}}
+{{$prefix := print "/" .Author "/" .Repo}}
 
 {{if .Owner}}
-<p><a href="/account/repo/{{.Repo}}/access">Collaborators</a></p>
-<form action="/account/repo/{{.Repo}}/{{.CSRF}}/chname" method="POST">
+<p><a href="{{$prefix}}/access">Collaborators</a></p>
+<form action="{{$prefix}}/{{.CSRF}}/chname" method="POST">
 	<span style="white-space: nowrap">Change repository name:</span>
 	<input class="field" type="text" name="name">
 	<input class="btn" type="submit" value="Update">
 </form>
-<form action="/account/repo/{{.Repo}}/{{.CSRF}}/chdesc" method="POST">
+<form action="{{$prefix}}/{{.CSRF}}/chdesc" method="POST">
 	<span style="white-space: nowrap">Change repository description:</span>
 	<input class="field" type="text" name="desc">
 	<input class="btn" type="submit" value="Update">
 </form>
-<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/togglepublic">Make the repository {{if .Public}}private{{else}}public {{end }}</a></p>
-<p><a href="/account/repo/{{.Repo}}/{{.CSRF}}/delete?{{.User.Get "repo_delete_confirm"}}">Delete repository</a>
+<p><a href="{{$prefix}}/{{.CSRF}}/togglepublic">
+	Make the repository {{if .Public}}private{{else}}public{{end}}
+</a></p>
+<p>
+	<a href="{{$prefix}}/{{.CSRF}}/delete?{{.User.Get "repo_delete_confirm"}}">
+		Delete repository
+	</a>
 {{if .User.GetOnce "repo_delete_confirm"}}
  (Click again to confirm)
-{{end}}</p>
+{{end}}
+</p>
 
 {{end}}
 
-{{$prefix := print "/repo/" .Author "/" .Repo}}
-{{if .Owner}}
-{{$prefix = print "/account/repo/" .Repo}}
-{{end}}
 <p><a href="{{$prefix}}">Log</a></p>
 <p><a href="{{$prefix}}/files">Files</a></p>
 <p><a href="{{$prefix}}/refs">Refs</a></p>

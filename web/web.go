@@ -162,59 +162,57 @@ func found(dst string) echo.HandlerFunc {
 	}
 }
 
+func dual(unauth echo.HandlerFunc, auth echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, err := getUser(c)
+		if err != nil { return unauth(c) }
+		return auth(c)
+	}
+}
+
 func Listen() error {
 	e := echo.New()
 	e.GET("/robots.txt", static("robots.txt"))
 	e.GET("/static/favicon.png", static("favicon.png"))
-	e.GET("/css/:path", staticCSS)
+	e.GET("/static/:path", staticCSS)
 
-	e.GET("/account", acc(ShowAccount))
+	e.GET("/", dual(isConnected(ShowIndex), acc(ShowAccount)))
 	// groups management
-	e.GET("/account/groups", acc(ShowGroups))
-	e.GET("/account/groups/:group", acc(ShowMembers))
-	e.POST("/account/groups/:csrf/addgroup",
+	e.GET("/:user/account/groups", acc(ShowGroups))
+	e.GET("/:user/account/groups/:group", acc(ShowMembers))
+	e.POST("/:user/account/groups/:csrf/addgroup",
 		acc(catch(AddGroup, "group_error", "/groups")))
-	e.POST("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
-	e.POST("/account/groups/:group/:csrf/add",
+	e.POST("/:user/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
+	e.POST("/:user/account/groups/:group/:csrf/add",
 		acc(catch(AddToGroup, "group_add_error", "..")))
-	e.GET("/account/groups/:group/:csrf/leave", acc(LeaveGroup))
-	e.GET("/account/groups/:group/:csrf/delete", acc(DeleteGroup))
-	e.GET("/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
+	e.GET("/:user/account/groups/:group/:csrf/leave", acc(LeaveGroup))
+	e.GET("/:user/account/groups/:group/:csrf/delete", acc(DeleteGroup))
+	e.GET("/:user/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
 
 	// repository settings
-	e.GET("/account/repo", found("/account"))
-	e.GET("/account/repo/:repo/*", acc(RepoFile))
-	e.GET("/account/repo/:repo/:csrf/togglepublic", acc(TogglePublic))
-	e.POST("/account/repo/:repo/:csrf/chname", acc(ChangeRepoName))
-	e.POST("/account/repo/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
-	e.GET("/account/repo/:repo/:csrf/delete", acc(DeleteRepo))
+	e.GET("/:user/:repo/:csrf/togglepublic", acc(TogglePublic))
+	e.POST("/:user/:repo/:csrf/chname", acc(ChangeRepoName))
+	e.POST("/:user/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
+	e.GET("/:user/:repo/:csrf/delete", acc(DeleteRepo))
 
 	// access management
-	e.GET("/account/repo/:repo/access", acc(ShowAccess))
-	e.POST("/account/repo/:repo/access/:csrf/add",
+	e.GET("/:u/:repo/access", acc(ShowAccess))
+	e.POST("/:u/:repo/access/:csrf/add",
 		acc(catch(AddUserAccess, "access_user_error", "..")))
-	e.POST("/account/repo/:repo/access/:csrf/addg",
+	e.POST("/:u/:repo/access/:csrf/addg",
 		acc(catch(AddGroupAccess, "access_group_error", "..")))
-	e.GET("/account/repo/:repo/access/:user/:csrf/first",
+	e.GET("/:u/:repo/access/:user/:csrf/first",
 		acc(UserAccessFirstOption))
-	e.GET("/account/repo/:repo/access/:user/:csrf/second",
+	e.GET("/:u/:repo/access/:user/:csrf/second",
 		acc(UserAccessSecondOption))
-	e.GET("/account/repo/:repo/access/:group/g/:csrf/first",
+	e.GET("/:u/:repo/access/:group/g/:csrf/first",
 		acc(GroupAccessFirstOption))
-	e.GET("/account/repo/:repo/access/:group/g/:csrf/second",
+	e.GET("/:u/:repo/access/:group/g/:csrf/second",
 		acc(GroupAccessSecondOption))
-	e.GET("/account/repo/:repo/access/:user/:csrf/kick",
+	e.GET("/:u/:repo/access/:user/:csrf/kick",
 		acc(RemoveUserAccess))
-	e.GET("/account/repo/:repo/access/:group/g/:csrf/kick",
+	e.GET("/:u/:repo/access/:group/g/:csrf/kick",
 		acc(RemoveGroupAccess))
-
-	// repository view
-	e.GET("/account/repo/:repo", acc(RepoLog))
-	e.GET("/account/repo/:repo/license", acc(RepoLicense))
-	e.GET("/account/repo/:repo/readme", acc(RepoReadme))
-	e.GET("/account/repo/:repo/refs", acc(RepoRefs))
-	e.GET("/account/repo/:repo/files", acc(RepoFiles))
-	e.GET("/account/repo/:repo/files/:blob", acc(RepoFileContent))
 
 	// user page
 	e.POST("/account/:csrf/chdesc", acc(ChangeDesc))
@@ -238,28 +236,34 @@ func Listen() error {
 	e.GET("/account/token/:csrf/renew/:token", acc(RenewToken))
 	e.GET("/account/token/:csrf/delete/:token", acc(DeleteToken))
 
-	e.GET("/repo", PublicList)
-	e.GET("/repo/:user/:repo/*", PublicFile)
-	e.GET("/repo/:user", PublicAccount)
-	e.GET("/repo/:user/:repo", PublicLog)
-	e.GET("/repo/:user/:repo/refs", PublicRefs)
-	e.GET("/repo/:user/:repo/license", PublicLicense)
-	e.GET("/repo/:user/:repo/readme", PublicReadme)
-	e.GET("/repo/:user/:repo/files", PublicFiles)
-	e.GET("/repo/:user/:repo/files/:blob", PublicFileContent)
+	e.GET("/public", PublicList)
+
+	// repository view
+	e.GET("/:user/:repo/*", PublicFile)
+	e.GET("/:user", PublicAccount)
+	e.GET("/:user", dual(PublicAccount, acc(ShowAccount)))
+	e.GET("/:user/:repo", PublicLog)
+	e.GET("/:user/:repo/refs", PublicRefs)
+	e.GET("/:user/:repo/license", PublicLicense)
+	e.GET("/:user/:repo/readme", PublicReadme)
+	e.GET("/:user/:repo/files", PublicFiles)
+	e.GET("/:user/:repo/files/:blob", PublicFileContent)
 
 	e.POST("/login", errorPage(Login))
 
 	if config.Cfg.Users.Registration {
 		e.POST("/register", errorPage(Register))
 	}
-	e.GET("/", isConnected(ShowIndex))
 
 	if config.Cfg.Git.Http.Enabled {
-		e.GET("/git/:user/:repo",
+		e.GET("/:user/:repo/info/refs",
 			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
-		e.POST("/git/:user/:repo",
+		e.POST("/:user/:repo/git-upload-pack",
 			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
+		e.POST("/:user/:repo/git-receive-pack",
+			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
+		//e.POST("/:user/:repo",
+		//	echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
 	}
 
 	e.Use(Logger)

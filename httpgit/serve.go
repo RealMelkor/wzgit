@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"net/url"
+	//"net/url"
 
 	githttpxfer "github.com/nulab/go-git-http-xfer/githttpxfer"
 )
@@ -53,13 +53,13 @@ func basicAuth(next http.Handler) http.Handler {
 		readOnly := false
 		public := false
 		params := strings.Split(r.URL.Path[1:], "/")
-		if len(params) < 3 {
+		if len(params) < 2 {
 			renderNotFound(w)
 			return
 		}
-		params = params[1:]
 		owner := params[0]
 		repo := params[1]
+		log.Println(owner, repo, r.URL.RequestURI())
 		if strings.Contains(r.URL.Path, "git-upload-pack") ||
 		   strings.Contains(r.URL.RawQuery, "git-upload-pack") {
 			readOnly = true
@@ -70,11 +70,6 @@ func basicAuth(next http.Handler) http.Handler {
 				return
 			}
 			if config.Cfg.Git.Public && public {
-				s := strings.Replace(
-					r.URL.String(), "/git/", "/", 1)
-				r.URL, err = url.Parse(s)
-				r.RequestURI = strings.Replace(
-					r.RequestURI, "/git/", "/", 1)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -112,6 +107,7 @@ func basicAuth(next http.Handler) http.Handler {
 			renderUnauthorized(w)
 			return
 		}
+		log.Println("next HTTP")
 		next.ServeHTTP(w, r)
 	})
 }

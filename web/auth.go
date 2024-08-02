@@ -49,5 +49,5 @@ func Login(c echo.Context) error {
 		Value: sig,
 	}
 	c.SetCookie(&cookie)
-	return c.Redirect(http.StatusFound, "/account")
+	return c.Redirect(http.StatusFound, "/" + name)
 }

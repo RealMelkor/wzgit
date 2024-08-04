@@ -12,7 +12,7 @@ git:
   http:
     enabled: true # serve git repositories using http
     https: false # show https instead of http in the repository pages
-    domain: "localhost" # domain displayed for the http git server
+    domain: "localhost:8080" # domain displayed for the http git server
   ssh:
     enabled: false # serve git repositories using ssh
     domain: "localhost:2222" # domain displayed for the ssh git server

@@ -1,0 +1,26 @@
+<h2>{{.Name}}</h2>
+{{if .Description -}}<p>{{ .Description }}</p>{{end}}
+
+<h3>Repositories</h3>
+{{if (eq .User.Name .Name)}}
+<form action="/account/{{.CSRF}}/addrepo" method="POST">
+	<span style="white-space: nowrap">Create a new repository:</span>
+	<input class="field" type="text" name="repo" required="required">
+	<input class="btn" type="submit" value="Create">
+</form>
+{{end}}
+<ul>
+{{ range .Repositories -}} 
+<li>
+	<p>
+		<a href="/{{.Username}}/{{.Name}}">{{.Name}}</a>
+		{{if not (eq $.Name .Username)}}
+		- <a href="/{{.Username}}">{{.Username}}</a>
+		{{end}}
+	</p>
+	{{if .Description -}}
+	<p>{{ .Description }}</p>
+	{{end -}}
+</li>
+{{ end -}}
+</ul>

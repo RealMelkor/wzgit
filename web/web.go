@@ -20,6 +20,17 @@ import (
 	"wzgit/httpgit"
 )
 
+func redirection(c echo.Context, prefix string, after string) error {
+	slash := "/"
+	if after == "" { slash = "" }
+	log.Println(prefix, slash, after)
+	return c.Redirect(http.StatusFound, prefix + slash + after)
+}
+
+func redirect(c echo.Context, user db.User, after string) error {
+	return redirection(c, "/" + user.Name, after)
+}
+
 //go:embed static/*
 var staticFS embed.FS
 
@@ -156,6 +167,16 @@ func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func Err(next echo.HandlerFunc) echo.HandlerFunc {
+	return func (c echo.Context) error {
+		err := next(c)
+		if err != nil {
+			return c.String(http.StatusOK, err.Error())
+		}
+		return nil
+	}
+}
+
 func found(dst string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return c.Redirect(http.StatusFound, dst)
@@ -176,18 +197,18 @@ func Listen() error {
 	e.GET("/static/favicon.png", static("favicon.png"))
 	e.GET("/static/:path", staticCSS)
 
-	e.GET("/", dual(isConnected(ShowIndex), acc(ShowAccount)))
+	e.GET("/", isConnected(ShowIndex))
 	// groups management
-	e.GET("/:user/account/groups", acc(ShowGroups))
-	e.GET("/:user/account/groups/:group", acc(ShowMembers))
-	e.POST("/:user/account/groups/:csrf/addgroup",
+	e.GET("/account/groups", acc(ShowGroups))
+	e.GET("/account/groups/:group", acc(ShowMembers))
+	e.POST("/account/groups/:csrf/addgroup",
 		acc(catch(AddGroup, "group_error", "/groups")))
-	e.POST("/:user/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
-	e.POST("/:user/account/groups/:group/:csrf/add",
+	e.POST("/account/groups/:group/:csrf/desc", acc(SetGroupDesc))
+	e.POST("/account/groups/:group/:csrf/add",
 		acc(catch(AddToGroup, "group_add_error", "..")))
-	e.GET("/:user/account/groups/:group/:csrf/leave", acc(LeaveGroup))
-	e.GET("/:user/account/groups/:group/:csrf/delete", acc(DeleteGroup))
-	e.GET("/:user/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
+	e.GET("/account/groups/:group/:csrf/leave", acc(LeaveGroup))
+	e.GET("/account/groups/:group/:csrf/delete", acc(DeleteGroup))
+	e.GET("/account/groups/:group/:csrf/kick/:user", acc(RmFromGroup))
 
 	// repository settings
 	e.GET("/:user/:repo/:csrf/togglepublic", acc(TogglePublic))
@@ -201,18 +222,15 @@ func Listen() error {
 		acc(catch(AddUserAccess, "access_user_error", "..")))
 	e.POST("/:u/:repo/access/:csrf/addg",
 		acc(catch(AddGroupAccess, "access_group_error", "..")))
-	e.GET("/:u/:repo/access/:user/:csrf/first",
-		acc(UserAccessFirstOption))
+	e.GET("/:u/:repo/access/:user/:csrf/first", acc(UserAccessFirstOption))
 	e.GET("/:u/:repo/access/:user/:csrf/second",
 		acc(UserAccessSecondOption))
 	e.GET("/:u/:repo/access/:group/g/:csrf/first",
 		acc(GroupAccessFirstOption))
 	e.GET("/:u/:repo/access/:group/g/:csrf/second",
 		acc(GroupAccessSecondOption))
-	e.GET("/:u/:repo/access/:user/:csrf/kick",
-		acc(RemoveUserAccess))
-	e.GET("/:u/:repo/access/:group/g/:csrf/kick",
-		acc(RemoveGroupAccess))
+	e.GET("/:u/:repo/access/:user/:csrf/kick", acc(RemoveUserAccess))
+	e.GET("/:u/:repo/access/:group/g/:csrf/kick", acc(RemoveGroupAccess))
 
 	// user page
 	e.POST("/account/:csrf/chdesc", acc(ChangeDesc))
@@ -241,13 +259,14 @@ func Listen() error {
 	// repository view
 	e.GET("/:user/:repo/*", PublicFile)
 	e.GET("/:user", PublicAccount)
-	e.GET("/:user", dual(PublicAccount, acc(ShowAccount)))
 	e.GET("/:user/:repo", PublicLog)
 	e.GET("/:user/:repo/refs", PublicRefs)
 	e.GET("/:user/:repo/license", PublicLicense)
 	e.GET("/:user/:repo/readme", PublicReadme)
 	e.GET("/:user/:repo/files", PublicFiles)
 	e.GET("/:user/:repo/files/:blob", PublicFileContent)
+
+	e.GET("/account", acc(ShowAccount))
 
 	e.POST("/login", errorPage(Login))
 
@@ -262,11 +281,10 @@ func Listen() error {
 			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
 		e.POST("/:user/:repo/git-receive-pack",
 			echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
-		//e.POST("/:user/:repo",
-		//	echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path)))
 	}
 
 	e.Use(Logger)
+	e.Use(Err)
 
 	return e.Start(config.Cfg.Web.Host)
 }

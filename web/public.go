@@ -2,8 +2,6 @@ package web
 
 import (
 	"wzgit/repo"
-	//"wzgit/httpgit"
-	//"wzgit/config"
 	"net/http"
 	"github.com/labstack/echo/v4"
 	"io"
@@ -16,11 +14,11 @@ func PublicFile(c echo.Context) error {
 func PublicFileContent(c echo.Context) error {
 	out, err := repo.GetPublicFile(
 		c.Param("repo"), c.Param("user"), c.Param("blob"))
-        if err != nil { return err }
+	if err != nil { return err }
 	defer out.Close()
 	c.Response().WriteHeader(http.StatusOK)
 	_, err = io.Copy(c.Response().Writer, out)
-        return err
+	return err
 }
 
 func PublicRefs(c echo.Context) error {
@@ -39,10 +37,6 @@ func PublicReadme(c echo.Context) error {
 }
 
 func PublicLog(c echo.Context) error {
-	/*if c.QueryString() != "" {
-		return echo.WrapHandler(httpgit.Handle(config.Cfg.Git.Path))(c)
-	}
-	*/
 	user, _ := getUser(c)
 	return showRepo(c, user, pageLog)
 }

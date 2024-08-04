@@ -1,4 +1,4 @@
-<h2>{{ .Group }}</h2>
+<h2>{{.Group}}</h2>
 {{if .Description}}
 <p>{{.Description}}</p>
 {{end}}
@@ -20,15 +20,14 @@
 {{end}}</p>
 {{else}}
 <h3>Group administrator</h3>
-<p><a href="/account/repo/{{.Owner}}">{{.Owner}}</a></p>
-<p><a href="/account/{{.CSRF}}/leave">Leave group</a></p>
+<p><a href="/{{.Owner}}">{{.Owner}}</a></p>
+<p><a href="/account/groups/{{.Group}}/{{.CSRF}}/leave">Leave group</a></p>
 {{end}}
 
 <h3>Members</h3>
-
 <ul>
 {{ range .Members -}}
-<li>{{ .Name }}</li>
+<li><a href="/{{.Name}}">{{ .Name }}</a></li>
 {{if $.IsOwner}}
 <p><a href="{{$.Group}}/{{$.CSRF}}/kick/{{.Name}}">Remove {{ .Name }}</a></p>
 {{end}}

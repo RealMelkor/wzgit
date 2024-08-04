@@ -1,4 +1,4 @@
-<h2>Account : {{ .User.Name }}</h2>
+<h2>Account : <a href="/{{.User.Name}}">{{.User.Name}}</a></h2>
 {{if .User.Description}}<p>{{ .User.Description }}</p>{{end}}
 
 <form action="/account/{{.CSRF}}/chdesc" method="POST">
@@ -27,21 +27,3 @@
 {{if .Sessions}}
 <p><a href="/account/{{.CSRF}}/disconnectall">Disconnect other sessions [{{.Sessions}}]</a></p>
 {{end}}
-
-<h3>Your repositories</h3>
-<form action="/account/{{.CSRF}}/addrepo" method="POST">
-	<span style="white-space: nowrap">Create a new repository:</span>
-	<input class="field" type="text" name="repo" required="required">
-	<input class="btn" type="submit" value="Create">
-</form>
-<ul>
-{{ range .Repositories -}} 
-<li><a href="/{{$.User.Name}}/{{.}}">{{.}}</a></li>
-{{ end }}
-</ul>
-<h3>Repositories</h3>
-<ul>
-{{ range .RepositoriesAccess -}} 
-<li><a href="/{{.Username}}/{{.Name}}">{{.Name}} by {{.Username}}</a></li>
-{{ end -}}
-</ul>

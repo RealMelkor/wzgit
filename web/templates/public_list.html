@@ -1,7 +1,7 @@
 <h2>Public repositories</h2>
 
 {{ range . -}} 
-<p><a href="/repo/{{.Username}}/{{.Name}}">{{.Name}} by {{.Username}}</a></p>
+<p><a href="/{{.Username}}/{{.Name}}">{{.Name}} by {{.Username}}</a></p>
 {{if .Description -}}
 <p>{{ .Description }}</p>
 {{end -}}

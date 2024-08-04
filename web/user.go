@@ -15,14 +15,14 @@ import (
 func ChangeDesc(c echo.Context, user db.User) error {
 	desc := c.Request().PostFormValue("description")
 	if err := user.ChangeDescription(desc); err != nil { return err }
-	return redirect(c, "")
+	return redirection(c, "/account", "")
 }
 
 func AddRepo(c echo.Context, user db.User) error {
 	name := c.Request().PostFormValue("repo")
 	if err := user.CreateRepo(name); err != nil { return err }
 	if err := repo.InitRepo(name, user.Name); err != nil { return err }
-	return redirect(c, "/repo/" + name)
+	return redirect(c, user, name)
 }
 
 type accFunc func(echo.Context, db.User) error
@@ -34,12 +34,11 @@ func catch(f accFunc, name string, dst string) accFunc {
 			u = c.Request().URL.ResolveReference(u)
 			dst = u.RequestURI()
 			dst = dst[:len(dst) - 1]
-			dst = dst[len("/account"):]
 		}
 		if err := f(c, user); err != nil {
 			user.Set(name, err.Error())
 		}
-		return redirect(c, dst)
+		return c.Redirect(http.StatusFound, dst)
 	}
 }
 
@@ -50,7 +49,7 @@ func ChangePassword(c echo.Context, user db.User) error {
 	if newPass != confirm { return errors.New("Passwords don't match") }
 	if err := db.CheckAuth(user.Name, oldPass); err != nil { return err }
 	if err := user.ChangePassword(newPass); err != nil { return err }
-	return redirect(c, "")
+	return redirect(c, user, "")
 }
 
 func Disconnect(c echo.Context, user db.User) error {
@@ -68,5 +67,5 @@ func Disconnect(c echo.Context, user db.User) error {
 
 func DisconnectAll(c echo.Context, user db.User) error {
 	if err := user.DisconnectAll(); err != nil { return err }
-	return redirect(c, "")
+	return redirect(c, user, "")
 }

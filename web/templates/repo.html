@@ -39,17 +39,18 @@
 <p><a href="{{$prefix}}">Log</a></p>
 <p><a href="{{$prefix}}/files">Files</a></p>
 <p><a href="{{$prefix}}/refs">Refs</a></p>
-{{ if .HasLicense -}}
+{{if .HasLicense}}
 <p><a href="{{$prefix}}/license">License</a></p>
-{{ end -}}
-{{ if .HasReadme -}}
+{{end}}
+{{if .HasReadme}}
 <p><a href="{{$prefix}}/readme">Readme</a></p>
-{{ end }}
+{{end}}
 {{if not .Content}}
 <p>Empty repository</p>
-{{ end }}
+{{else}}
 {{if eq .Page "license"}}{{ template "license" .Content }}{{end}}
 {{if eq .Page "log"}}{{ template "log" .Content }}{{end}}
 {{if eq .Page "refs"}}{{ template "refs" .Content }}{{end}}
 {{if eq .Page "files"}}{{ template "files" .Content }}{{end}}
 {{if eq .Page "readme"}}{{ template "readme" .Content }}{{end}}
+{{end}}

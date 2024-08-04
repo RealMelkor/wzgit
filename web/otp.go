@@ -1,13 +1,13 @@
 package web
 
 import (
-	"wzgit/auth"
 	"wzgit/config"
 	"wzgit/db"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pquerna/otp/totp"
 
+	"errors"
 	"bytes"
 	"image/png"
 	"net/http"
@@ -45,31 +45,17 @@ func ConfirmTOTP(c echo.Context, user db.User) error {
 
 	valid := false
 	if exist { valid = totp.Validate(code, key) }
-	if !valid {
-		return c.String(http.StatusBadRequest, "Invalid code")
-	}
+	if !valid { return errors.New("Invalid code") }
 
 	if err := user.SetSecret(key); err != nil { return err }
 
 	return otpRedirect(c)
 }
 
-func LoginOTP(c echo.Context, user db.User) error {
-
-	code := c.Request().PostFormValue("code")
-	err := auth.LoginOTP(user.Signature, code)
-	if err != nil && err.Error() == "wrong code" {
-		return c.Redirect(http.StatusFound, "/")
-	}
-	if err != nil { return err }
-
-	return c.Redirect(http.StatusFound, "/account")
-}
-
 func RemoveTOTP(c echo.Context, user db.User) error {
 	code := c.Request().PostFormValue("code")
 	if !totp.Validate(code, user.Secret) {
-		return c.String(http.StatusBadRequest, "Invalid code")
+		return errors.New("Invalid code")
 	}
 
 	if err := user.SetSecret(""); err != nil { return err }

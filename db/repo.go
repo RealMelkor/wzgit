@@ -200,24 +200,19 @@ func (user User) GetRepo(reponame string) (Repo, error) {
 
 func (user User) GetRepos(onlyPublic bool) ([]Repo, error) {
 	query := "SELECT repoID, userID, name, " +
-		 "creation, public, description " +
-		 "FROM repo WHERE userID=?"
-	if onlyPublic {
-		query += " AND public=1"
-	}
+		"creation, public, description " +
+		"FROM repo WHERE userID=?"
+	if onlyPublic { query += " AND public=1" }
 	rows, err := db.Query(query, user.ID)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 	defer rows.Close()
 	var repos []Repo
 	for rows.Next() {
 		var r = Repo{}
 		err = rows.Scan(&r.ID, &r.UserID, &r.Name,
 				&r.Date, &r.IsPublic, &r.Description)
-		if err != nil {
-			return nil, err
-		}
+		if err != nil { return nil, err }
+		r.Username = user.Name
 		repos = append(repos, r)
 	}
 	return repos, nil
@@ -225,21 +220,17 @@ func (user User) GetRepos(onlyPublic bool) ([]Repo, error) {
 
 func GetPublicRepo() ([]Repo, error) {
 	rows, err := db.Query("SELECT b.name, a.repoID, a.userID, a.name, " +
-			      "a.creation, a.public, a.description " +
-			      "FROM repo a INNER JOIN user b " +
-			      "ON a.userID=b.userID WHERE a.public=1")
-	if err != nil {
-		return nil, err
-	}
+				"a.creation, a.public, a.description " +
+				"FROM repo a INNER JOIN user b " +
+				"ON a.userID=b.userID WHERE a.public=1")
+	if err != nil { return nil, err }
 	defer rows.Close()
 	var repos []Repo
 	for rows.Next() {
 		var r = Repo{}
 		err = rows.Scan(&r.Username, &r.ID, &r.UserID, &r.Name,
 				&r.Date, &r.IsPublic, &r.Description)
-		if err != nil {
-			return nil, err
-		}
+		if err != nil { return nil, err }
 		repos = append(repos, r)
 	}
 	return repos, nil

@@ -227,17 +227,13 @@ func showRepoLogs(name string, author string) (any, error) {
 	if ret == nil || err == transport.ErrEmptyRemoteRepository {
 		return nil, nil
 	}
-	if err != nil {
-		log.Println(err.Error())
-		return nil, errors.New("Corrupted repository")
-	}
+	if err != nil { return nil, err }
 	commits := []commit{}
 	maximum := config.Cfg.Git.MaximumCommits
 	for i := 0; maximum == 0 || i < maximum; i++ {
 		c, err := ret.Next()
 		if err != nil {
 			if err.Error() == "EOF" { break }
-			log.Println(err.Error())
 			return nil, err
 		}
 		info := c.Hash.String() + ", by " + c.Author.Name + " on " +
@@ -253,10 +249,7 @@ func showRepoFiles(name string, author string) (any, error) {
 	if ret == nil || err == transport.ErrEmptyRemoteRepository {
 		return nil, nil
 	}
-	if err != nil {
-		log.Println(err.Error())
-		return nil, errors.New("Corrupted repository")
-	}
+	if err != nil { return nil, err }
 	files := []file{}
 	err = ret.ForEach(func(f *object.File) error {
 		info := f.Mode.String() + " " + f.Name +
@@ -273,10 +266,7 @@ func showRepoRefs(name string, author string) (any, error) {
 	if refs == nil || err == transport.ErrEmptyRemoteRepository {
 		return nil, nil
 	}
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Corrupted repository")
-	}
+	if err != nil { return nil, err }
 	branches := []branch{}
 	tags := []branch{}
 	err = refs.ForEach(func(c *plumbing.Reference) error {
@@ -426,16 +416,27 @@ func PublicAccount(c echo.Context) error {
 	if err != nil { return err }
 	repos, err := user.GetRepos(true)
 	if err != nil { return err }
+	u, err := getUser(c)
+	if err == nil && user.ID == u.ID {
+		accessRepos, err := user.HasReadAccessTo()
+		if err != nil { return err }
+		repos = append(repos, accessRepos...)
+		//for _, v := range accessRepos { repos = append(repos, v) }
+	}
 	data := struct {
+		User db.User
 		Name string
 		Description string
 		Repositories []db.Repo
+		CSRF string
 	}{
-		user.Name,
-		user.Description,
-		repos,
+		User: u,
+		Name: user.Name,
+		Description: user.Description,
+		Repositories: repos,
+		CSRF: csrf.Token(user.Signature),
 	}
-	return render(c, "public_user.html", data)
+	return render(c, "user.html", data)
 }
 
 func ShowAccess(c echo.Context, user db.User) error {

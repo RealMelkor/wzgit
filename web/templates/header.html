@@ -27,7 +27,7 @@
 			</p>
 			{{if .IsConnected}}
 			<div style="margin-left: auto; padding-right: 20px;">
-			<p><a href="/account">{{.User.Name}}</a></p>
+				<p>Logged in as <a href="/{{.User.Name}}">{{.User.Name}}</a> | <a href="/account">Settings</a></p>
 			</div>
 			{{end}}
 		</div>

@@ -14,11 +14,6 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
-func redirect(c echo.Context, after string) error {
-	return c.Redirect(http.StatusFound,
-		"/" + c.Param("user") + after)
-}
-
 func showFileContent(content string) string {
 	lines := strings.Split(content, "\n")
 	file := ""
@@ -76,7 +71,7 @@ func TogglePublic(c echo.Context, user db.User) error {
 	if err := user.TogglePublic(c.Param("repo")); err != nil {
 		return err
 	}
-	return redirect(c, "/" + c.Param("repo"))
+	return redirect(c, user, c.Param("repo"))
 }
 
 func ChangeRepoName(c echo.Context, user db.User) error {
@@ -86,7 +81,7 @@ func ChangeRepoName(c echo.Context, user db.User) error {
 	if err != nil { return err }
 	err = user.ChangeRepoName(c.Param("repo"), newname)
 	if err != nil { return err }
-	return redirect(c, "/" + newname)
+	return redirect(c, user, newname)
 }
 
 func ChangeRepoDesc(c echo.Context, user db.User) error {
@@ -94,19 +89,19 @@ func ChangeRepoDesc(c echo.Context, user db.User) error {
 	if err := user.ChangeRepoDesc(c.Param("repo"), newdesc); err != nil {
 		return err
 	}
-	return redirect(c, "/" + c.Param("repo"))
+	return redirect(c, user, c.Param("repo"))
 }
 
 func DeleteRepo(c echo.Context, user db.User) error {
 	name := c.QueryString()
 	if name != c.Param("repo") {
 		user.Set("repo_delete_confirm", c.Param("repo"))
-		return redirect(c, "/" + c.Param("repo"))
+		return redirect(c, user, c.Param("repo"))
 	}
 	// check if repo exist
 	if err := repo.RemoveRepo(name, user.Name); err != nil { return err }
 	if err := user.DeleteRepo(name); err != nil { return err }
-	return redirect(c, "")
+	return redirect(c, user, "")
 }
 
 func RepoRefs(c echo.Context, user db.User) error {

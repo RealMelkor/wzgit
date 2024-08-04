@@ -47,10 +47,4 @@
 {{end}}
 {{if not .Content}}
 <p>Empty repository</p>
-{{else}}
-{{if eq .Page "license"}}{{ template "license" .Content }}{{end}}
-{{if eq .Page "log"}}{{ template "log" .Content }}{{end}}
-{{if eq .Page "refs"}}{{ template "refs" .Content }}{{end}}
-{{if eq .Page "files"}}{{ template "files" .Content }}{{end}}
-{{if eq .Page "readme"}}{{ template "readme" .Content }}{{end}}
 {{end}}

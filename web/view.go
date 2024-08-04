@@ -57,19 +57,17 @@ func LoadTemplate() error {
 	return nil
 }
 
-func showRepoFile(user string, reponame string, file string) (string, error) {
+func getRepoFile(user string, reponame string, file string) (io.Reader, error) {
         out, err := repo.GetFile(reponame, user, file)
-        if err != nil {
-                return "", err
-        }
-        reader, err := out.Reader()
-        if err != nil {
-                return "", err
-        }
+        if err != nil { return nil, err }
+        return out.Reader()
+}
+
+func showRepoFile(user string, reponame string, file string) (string, error) {
+        reader, err := getRepoFile(user, reponame, file)
+        if err != nil { return "", err }
         buf, err := io.ReadAll(reader)
-        if err != nil {
-                return "", err
-        }
+        if err != nil { return "", err }
         return string(buf), nil
 }
 
@@ -311,22 +309,18 @@ func showRepoRefs(name string, author string) (any, error) {
 
 func showRepoLicense(name string, author string) (string, error) {
 	content, err := showRepoFile(author, name, "LICENSE")
-	if err != nil {
-		return "", errors.New("No license found")
-	}
+	if err != nil { return "", errors.New("No license found") }
 	return content, nil
 }
 
-func showRepoReadme(name string, author string) (any, error) {
+func showRepoReadme(name string, author string, w io.Writer) error {
 	content, err := showRepoFile(author, name, "README.md")
 	if err != nil {
-		content, err = showRepoFile(author, name, "README")
-		if err != nil {
-			return "", errors.New("No readme found")
-		}
-		return content, nil
+		r, err := getRepoFile(author, name, "README")
+		if err != nil { return errors.New("No readme found") }
+		return textToHTML(r, w)
 	}
-	return template.HTML(mdToHTML([]byte(content))), nil
+	return readmeMarkdown([]byte(content), w)
 }
 
 func showRepo(c echo.Context, user db.User, page int) (error) {
@@ -359,7 +353,6 @@ func showRepo(c echo.Context, user db.User, page int) (error) {
 		content, err = showRepoLicense(name, author)
 		contentType = "license"
 	case pageReadme:
-		content, err = showRepoReadme(name, author)
 		contentType = "readme"
 	}
 	if err != nil { return err }
@@ -381,7 +374,6 @@ func showRepo(c echo.Context, user db.User, page int) (error) {
 		HasLicense bool
 		Content any
 		CSRF string
-		Page string
 	}{
 		User: user,
 		HasHTTP: config.Cfg.Git.Http.Enabled,
@@ -398,11 +390,16 @@ func showRepo(c echo.Context, user db.User, page int) (error) {
 		HasReadme: hasFile(name, author, "README.md") ||
 			   hasFile(name, author, "README"),
 		HasLicense: hasFile(name, author, "LICENSE"),
-		Content: content,
+		Content: content != nil,
 		CSRF: csrf.Token(user.Signature),
-		Page: contentType,
 	}
-	return render(c, "repo.html", data)
+	f := func(w io.Writer) error {
+		if contentType == "readme" {
+			return showRepoReadme(name, author, w)
+		}
+		return templates.Lookup(contentType).Execute(w, content)
+	}
+	return renderCustom(c, "repo.html", data, f)
 }
 
 func PublicList(c echo.Context) (error) {
@@ -414,14 +411,13 @@ func PublicList(c echo.Context) (error) {
 func PublicAccount(c echo.Context) error {
 	user, err := db.GetPublicUser(c.Param("user"))
 	if err != nil { return err }
-	repos, err := user.GetRepos(true)
+	u, _ := getUser(c)
+	repos, err := user.GetRepos(u.ID != user.ID)
 	if err != nil { return err }
-	u, err := getUser(c)
-	if err == nil && user.ID == u.ID {
+	if user.ID == u.ID {
 		accessRepos, err := user.HasReadAccessTo()
 		if err != nil { return err }
 		repos = append(repos, accessRepos...)
-		//for _, v := range accessRepos { repos = append(repos, v) }
 	}
 	data := struct {
 		User db.User

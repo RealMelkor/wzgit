@@ -59,3 +59,8 @@ pre {
 	padding: 10px;
 	border-radius: 5px;
 }
+
+.plain-text {
+	white-space: pre-wrap;
+	color: #eee;
+}

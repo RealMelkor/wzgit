@@ -23,7 +23,6 @@ import (
 func redirection(c echo.Context, prefix string, after string) error {
 	slash := "/"
 	if after == "" { slash = "" }
-	log.Println(prefix, slash, after)
 	return c.Redirect(http.StatusFound, prefix + slash + after)
 }
 
@@ -79,8 +78,9 @@ func minifyHTML(w io.Writer) io.WriteCloser {
 	return m.Writer("text/html", w)
 }
 
-func render(c echo.Context, template string, data any) error {
-        c.Response().WriteHeader(http.StatusOK)
+func renderCustom(c echo.Context, template string, data any,
+			f func(io.Writer) error) error {
+	c.Response().WriteHeader(http.StatusOK)
         c.Response().Header().Add("Content-Type", "text/html; charset=utf-8")
         w := minifyHTML(c.Response().Writer)
 	user, err := getUser(c)
@@ -89,11 +89,13 @@ func render(c echo.Context, template string, data any) error {
 	header := struct {
 		Navs		[]string
 		Title		string
+		CSRF		string
 		IsConnected	bool
 		User		db.User
 	}{
 		Navs:		navs,
 		Title:		config.Cfg.Title,
+		CSRF:		csrf.Token(user.Signature),
 		IsConnected:	err == nil,
 		User:		user,
 	}
@@ -101,29 +103,21 @@ func render(c echo.Context, template string, data any) error {
 	if err != nil { return err }
 	err = templates.Lookup(template).Execute(w, data)
 	if err != nil { return err }
+	if f != nil { if err := f(w); err != nil { return err } }
 	err = templates.Lookup("footer").Execute(w, nil)
 	if err != nil { return err }
 	return w.Close()
 }
 
-func errorPage(f func(echo.Context) error) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		if err := f(c); err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
-		}
-		return nil
-	}
+func render(c echo.Context, template string, data any) error {
+	return renderCustom(c, template, data, nil)
 }
 
 func getUser(c echo.Context) (db.User, error) {
 	cookie, err := c.Cookie("auth_id")
-	if err != nil {
-		return db.User{}, err
-	}
+	if err != nil { return db.User{}, err }
 	user, exist := db.GetUser(cookie.Value)
-	if !exist {
-		return db.User{}, errors.New("user not found")
-	}
+	if !exist { return db.User{}, errors.New("user not found") }
 	renew := c.Request().Method == "POST"
 	if err := csrf.Handle(user, c.Param("csrf"), renew); err != nil {
 		return db.User{}, err
@@ -268,10 +262,10 @@ func Listen() error {
 
 	e.GET("/account", acc(ShowAccount))
 
-	e.POST("/login", errorPage(Login))
+	e.POST("/login", Login)
 
 	if config.Cfg.Users.Registration {
-		e.POST("/register", errorPage(Register))
+		e.POST("/register", Register)
 	}
 
 	if config.Cfg.Git.Http.Enabled {

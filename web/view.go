@@ -117,12 +117,14 @@ func ShowAccount(c echo.Context, user db.User) (error) {
 		RepositoriesAccess []db.Repo
 		Sessions int
 		CSRF string
+		LDAP bool
 	}{
 		User: user,
 		Repositories: repoNames,
 		RepositoriesAccess: accessRepos,
 		Sessions: sessions,
 		CSRF: csrf.Token(user.Signature),
+		LDAP: config.Cfg.Ldap.Enabled,
 	}
 	return render(c, "account.html", data)
 }
@@ -184,17 +186,13 @@ func ShowMembers(c echo.Context, user db.User) (error) {
 
 func getRepo(c echo.Context, user db.User) (string, string, error) {
 	username := c.Param("user")
-	ret, err := db.IsRepoPublic(c.Param("repo"), c.Param("user"))
-	if !ret {
-		err := access.HasReadAccess(c.Param("repo"),
-					    c.Param("user"),
+	repo, err := db.GetRepo(c.Param("repo"), c.Param("user"))
+	if err == nil && !repo.IsPublic {
+		err = access.HasReadAccess(c.Param("repo"), c.Param("user"),
 					    user.Name)
-		ret = err == nil
 	}
-	if !ret || err != nil {
-		return "", "", err
-	}
-	return username, c.Param("repo"), nil
+	if err != nil { return "", "", err }
+	return username, repo.Name, nil
 }
 
 func hasFile(name string, author string, file string) bool {
@@ -488,4 +486,21 @@ func ShowTokens(c echo.Context, user db.User) error {
 		CSRF:	csrf.Token(user.Signature),
 	}
 	return render(c, "token.html", data)
+}
+
+func ShowPasswd(c echo.Context, user db.User) error {
+
+	tokens, err := user.GetTokens()
+	if err != nil { return err }
+
+	data := struct {
+		User	db.User
+		Tokens	[]db.Token
+		CSRF	string
+	}{
+		User:	user,
+		Tokens:	tokens,
+		CSRF:	csrf.Token(user.Signature),
+	}
+	return render(c, "passwd.html", data)
 }

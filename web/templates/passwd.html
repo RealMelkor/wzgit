@@ -1,0 +1,14 @@
+<h2>Change your password</h2>
+<form action="/account/passwd/{{.CSRF}}" method="POST">
+	<span style="white-space: nowrap">Old password:</span>
+	<input class="field" type="password" name="old_password" required="required">
+	<br>
+	<span style="white-space: nowrap">New password:</span>
+	<input class="field" type="password" name="new_password" required="required">
+	<br>
+	<span style="white-space: nowrap">Confirm password:</span>
+	<input class="field" type="password" name="confirm" required="required">
+	<br>
+	<p>{{.User.GetOnce "passwd_error"}}</p>
+	<input class="btn" type="submit" value="Update">
+</form>

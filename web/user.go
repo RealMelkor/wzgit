@@ -28,7 +28,7 @@ func AddRepo(c echo.Context, user db.User) error {
 type accFunc func(echo.Context, db.User) error
 func catch(f accFunc, name string, dst string) accFunc {
 	return func(c echo.Context, user db.User) error {
-		if dst[0] != '/' {
+		if len(dst) == 0 || dst[0] != '/' {
 			u, err := url.Parse(dst)
 			if err != nil { return err }
 			u = c.Request().URL.ResolveReference(u)

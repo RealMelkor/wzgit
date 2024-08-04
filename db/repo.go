@@ -139,6 +139,27 @@ func (user User) DeleteRepo(repo string) error {
 	return nil
 }
 
+func GetRepo(repo string, username string) (Repo, error) {
+	rows, err := db.Query("SELECT a.repoID, a.userID, a.name, " +
+			      "a.creation, a.public, a.description " +
+			      "FROM repo a " +
+			      "INNER JOIN user b ON a.userID = b.userID " +
+			      "WHERE UPPER(a.name) LIKE UPPER(?) " +
+			      "AND UPPER(b.name) LIKE UPPER(?)",
+			      repo, username)
+	if err != nil { return Repo{}, err }
+	defer rows.Close()
+	if rows.Next() {
+		var r = Repo{}
+		err = rows.Scan(&r.ID, &r.UserID, &r.Name,
+				&r.Date, &r.IsPublic, &r.Description)
+		if err != nil { return Repo{}, err }
+		return r, nil
+	}
+	return Repo{}, errors.New("No repository called " + repo +
+				 " by user " + username)
+}
+
 func IsRepoPublic(repo string, username string) (bool, error) {
 	rows, err := db.Query("SELECT a.public FROM repo a " +
 			      "INNER JOIN user b ON a.userID = b.userID " +
@@ -163,13 +184,9 @@ func IsRepoPublic(repo string, username string) (bool, error) {
 
 func (user User) TogglePublic(repo string) error {
 	b, err := IsRepoPublic(repo, user.Name)
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 	i := 1
-	if b {
-		i = 0
-	}
+	if b { i = 0 }
 	_, err = db.Exec("UPDATE repo SET public=? " +
 			 "WHERE UPPER(name) LIKE UPPER(?) " +
 			 "AND userID=?", i, repo, user.ID)

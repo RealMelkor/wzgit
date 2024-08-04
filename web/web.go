@@ -231,10 +231,7 @@ func Listen() error {
 	e.POST("/account/:csrf/addrepo", acc(AddRepo))
 	e.GET("/account/:csrf/disconnect", acc(Disconnect))
 	e.GET("/account/:csrf/disconnectall", acc(DisconnectAll))
-	if !config.Cfg.Ldap.Enabled {
-		e.POST("/account/:csrf/chpasswd",
-			acc(catch(ChangePassword, "chpasswd_error", "")))
-	}
+	
 	// otp
 	e.GET("/account/otp", acc(ShowOTP))
 	e.GET("/account/otp/:csrf/qr", acc(CreateTOTP))
@@ -247,6 +244,12 @@ func Listen() error {
 	e.GET("/account/token/:csrf/secure", acc(ToggleTokenAuth))
 	e.GET("/account/token/:csrf/renew/:token", acc(RenewToken))
 	e.GET("/account/token/:csrf/delete/:token", acc(DeleteToken))
+	// password
+	if !config.Cfg.Ldap.Enabled {
+		e.POST("/account/passwd/:csrf", acc(catch(ChangePassword,
+				"passwd_error", "/account/passwd")))
+		e.GET("/account/passwd", acc(ShowPasswd))
+	}
 
 	e.GET("/public", PublicList)
 

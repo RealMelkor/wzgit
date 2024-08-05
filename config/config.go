@@ -14,9 +14,9 @@ type Config struct {
 		Domain		string `default:"localhost"`
 		Host		string `default:":8080"`
 	}
-	Catpcha struct {
+	Captcha struct {
 		Enabled		bool
-		Length		int
+		Length		int `default:"6"`
 	}
 	Git struct {
 		Http struct {

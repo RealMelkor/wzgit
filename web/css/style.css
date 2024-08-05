@@ -64,3 +64,7 @@ pre {
 	white-space: pre-wrap;
 	color: #eee;
 }
+
+.captcha {
+	background-color: #aaa;
+}

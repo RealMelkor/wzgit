@@ -19,6 +19,7 @@ func token() (string, error) {
 }
 
 func Register(c echo.Context) error {
+	if err := captchaVerify(c); err != nil { return err }
 	name := c.Request().PostFormValue("username")
 	password := c.Request().PostFormValue("password")
 	confirm := c.Request().PostFormValue("password_confirm")
@@ -31,6 +32,7 @@ func Register(c echo.Context) error {
 }
 
 func Login(c echo.Context) error {
+	if err := captchaVerify(c); err != nil { return err }
 	name := c.Request().PostFormValue("username")
 	pass := c.Request().PostFormValue("password")
 	code := c.Request().PostFormValue("otp")
@@ -40,9 +42,7 @@ func Login(c echo.Context) error {
 	if err != nil && err.Error() == "token required" {
 		err = auth.LoginOTP(sig, code)
 	}
-	if err != nil {
-		return showIndex(c, false, err.Error())
-	}
+	if err != nil { return err }
 	cookie := http.Cookie{
 		Domain: config.Cfg.Web.Domain,
 		Name: "auth_id",

@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	//"net/url"
 
 	githttpxfer "github.com/nulab/go-git-http-xfer/githttpxfer"
 )
@@ -59,7 +58,6 @@ func basicAuth(next http.Handler) http.Handler {
 		}
 		owner := params[0]
 		repo := params[1]
-		log.Println(owner, repo, r.URL.RequestURI())
 		if strings.Contains(r.URL.Path, "git-upload-pack") ||
 		   strings.Contains(r.URL.RawQuery, "git-upload-pack") {
 			readOnly = true
@@ -107,7 +105,6 @@ func basicAuth(next http.Handler) http.Handler {
 			renderUnauthorized(w)
 			return
 		}
-		log.Println("next HTTP")
 		next.ServeHTTP(w, r)
 	})
 }

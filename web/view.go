@@ -48,6 +48,7 @@ func LoadTemplate() error {
 			if len(s) < 2 { return s }
 			return strings.ToUpper(s[0:1]) + s[1:]
 		},
+		"captcha": captchaNew,
 	})
 	_, err = t.ParseFS(templatesFS, "templates/*.html")
 	if err != nil {
@@ -84,7 +85,7 @@ func showIndex(c echo.Context, isConnected bool, err string) (error) {
 		Registration:	config.Cfg.Users.Registration,
 		Connected:	isConnected,
 		Public:		isConnected || config.Cfg.Git.Public,
-		Captcha:	config.Cfg.Catpcha.Enabled,
+		Captcha:	config.Cfg.Captcha.Enabled,
 		Error:		err,
 	}
 	return render(c, "index.html", data)

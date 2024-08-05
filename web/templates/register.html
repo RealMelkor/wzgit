@@ -1,0 +1,30 @@
+<h2>Register</h2>
+<form action="/register" method="POST">
+	<table>
+		<tr>
+			<th>Username:</th>
+			<td><input class="field" type="text" name="username" required="required"></td>
+		</tr>
+		<tr>
+			<th>Password:</th>
+			<td><input class="field" type="password" name="password" required="required"></td>
+		</tr>
+		<tr>
+			<th>Confirm Password:</th>
+			<td><input class="field" type="password" name="password_confirm" required="required"></td>
+		</tr>
+{{if .Captcha}}
+{{$id := captcha}}
+		<tr>
+			<th></th>
+			<td class="captcha"><img loading="lazy" src="/captcha?{{$id}}" alt="captcha"></td>
+			<input type="hidden" name="captcha_id" value="{{$id}}">
+		</tr>
+		<tr>
+			<th>Captcha:</th>
+			<td><input type="text" name="captcha" required="required"></td>
+		</tr>
+{{end}}
+	</table>
+	<input class="btn" type="submit" value="Register">
+</form>

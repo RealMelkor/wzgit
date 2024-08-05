@@ -20,6 +20,27 @@ import (
 	"wzgit/httpgit"
 )
 
+func unauth(template string, err string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		data := struct {
+			Error	string
+			Captcha	bool
+		}{
+			Error: err,
+			Captcha: config.Cfg.Captcha.Enabled,
+		}
+		return render(c, template, data)
+	}
+}
+
+func catchUnauth(f echo.HandlerFunc, template string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		err := f(c)
+		if err != nil { return unauth(template, err.Error())(c) }
+		return nil
+	}
+}
+
 func redirection(c echo.Context, prefix string, after string) error {
 	slash := "/"
 	if after == "" { slash = "" }
@@ -265,10 +286,15 @@ func Listen() error {
 
 	e.GET("/account", acc(ShowAccount))
 
-	e.POST("/login", Login)
+	e.GET("/login", unauth("login.html", ""))
+	e.POST("/login", catchUnauth(Login, "login.html"))
+	if config.Cfg.Captcha.Enabled {
+		e.GET("/captcha", captchaImage)
+	}
 
 	if config.Cfg.Users.Registration {
-		e.POST("/register", Register)
+		e.GET("/register", unauth("register.html", ""))
+		e.POST("/register", catchUnauth(Register, "register.html"))
 	}
 
 	if config.Cfg.Git.Http.Enabled {

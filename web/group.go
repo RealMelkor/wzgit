@@ -39,7 +39,7 @@ func DeleteGroup(c echo.Context, user db.User) error {
 	name := c.QueryString()
 	if name != c.Param("group") {
 		user.Set("group_delete_confirm", c.Param("group"))
-		return groupRedirect(c, "")
+		return groupRedirect(c, c.Param("group"))
 	}
 	id, err := isGroupOwner(c, user)
 	if err != nil { return err }

@@ -258,7 +258,8 @@ func Listen() error {
 	// otp
 	e.GET("/account/otp", acc(ShowOTP))
 	e.GET("/account/otp/:csrf/qr", acc(CreateTOTP))
-	e.POST("/account/otp/:csrf/confirm", acc(ConfirmTOTP))
+	e.POST("/account/otp/:csrf/confirm",
+		acc(catch(ConfirmTOTP, "otp_error", "..")))
 	e.POST("/account/otp/:csrf/rm", acc(RemoveTOTP))
 	// token
 	e.GET("/account/token", acc(ShowTokens))

@@ -1,6 +1,7 @@
 <h2>2FA Settings</h2>
 {{if .Secret}}
 <p>Remove 2FA</p>
+<p>{{.User.GetOnce "otp_error"}}</p>
 <form action="/account/otp/{{.CSRF}}/rm" method="POST">
 	<span style="white-space: nowrap">2FA Code:</span>
 	<input class="field" type="password" name="code" required="required">
@@ -8,6 +9,7 @@
 </form>
 {{else}}
 <img src="/account/otp/{{.CSRF}}/qr" alt="qr">
+<p>{{.User.GetOnce "otp_error"}}</p>
 <form action="/account/otp/{{.CSRF}}/confirm" method="POST">
 	<span style="white-space: nowrap">2FA Code:</span>
 	<input class="field" type="password" name="code" required="required">

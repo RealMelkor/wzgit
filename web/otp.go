@@ -5,6 +5,7 @@ import (
 	"wzgit/db"
 
 	"github.com/labstack/echo/v4"
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
 	"errors"
@@ -24,6 +25,7 @@ func CreateTOTP(c echo.Context, user db.User) error {
 	key, err := totp.Generate(totp.GenerateOpts{
 		Issuer: config.Cfg.Title,
 		AccountName: user.Name,
+		Algorithm: otp.AlgorithmSHA512,
 	})
 
 	if err != nil { return err }

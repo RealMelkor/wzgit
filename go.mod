@@ -52,6 +52,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.7.15 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/wagslane/go-password-validator v0.3.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.24.0 // indirect

@@ -461,9 +461,11 @@ func ShowAccess(c echo.Context, user db.User) error {
 
 func ShowOTP(c echo.Context, user db.User) error {
 	data := struct {
+		User db.User
 		Secret bool
 		CSRF string
 	}{
+		User: user,
 		Secret: user.Secret != "",
 		CSRF: csrf.Token(user.Signature),
 	}

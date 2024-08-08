@@ -24,9 +24,7 @@ func userAlreadyExist(username string) error {
 	rows, err := db.Query(
 		"SELECT * FROM user WHERE UPPER(name) LIKE UPPER(?)",
 		username)
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 	defer rows.Close()
 	if rows.Next() {
 		return errors.New("This username is already taken")
@@ -253,18 +251,14 @@ func CheckAuth(username string, password string) error {
 	rows, err := db.Query("SELECT name, password FROM user " +
 			      "WHERE UPPER(name) LIKE UPPER(?)",
 			      username)
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 	defer rows.Close()
 	if rows.Next() {
 		var dPassword string
 		var dName string
 		err = rows.Scan(&dName, &dPassword)
-		if err != nil {
-			return err
-		}
-		if checkPassword(password, dPassword) {
+		if err != nil { return err }
+		if err := checkPassword(password, dPassword); err == nil {
 			return nil
 		}
 	}
@@ -279,13 +273,8 @@ func Register(username string, password string) error {
 		}
 	}
 
-	if err := isUsernameValid(username); err != nil {
-		return err
-	}
-
-	if err := userAlreadyExist(username); err != nil {
-		return err
-	}
+	if err := isUsernameValid(username); err != nil { return err }
+	if err := userAlreadyExist(username); err != nil { return err }
 
 	if !config.Cfg.Ldap.Enabled {
 		hash, err := hashPassword(password)

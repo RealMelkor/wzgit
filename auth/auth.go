@@ -46,12 +46,12 @@ func Connect(username string, password string,
 	     signature string, ip string) error {
 
 	if try(&userAttempts, username, config.Cfg.Protection.Account) {
-		return errors.New("the account is locked, " +
+		return errors.New("The account is locked, " +
 				  "too many connections attempts")
 	}
 
 	if try(&clientAttempts, ip, config.Cfg.Protection.Ip) {
-		return errors.New("too many connections attempts")
+		return errors.New("Too many connections attempts")
 	}
 
 	err := access.Login(username, password, false, true, false)
@@ -85,18 +85,16 @@ func Connect(username string, password string,
 
 func Register(username string, password string, ip string) error {
 	if try(&registrationAttempts, ip, config.Cfg.Protection.Registration) {
-		return errors.New("too many registration attempts")
+		return errors.New("Too many registration attempts")
 	}
 	return db.Register(username, password)
 }
 
 func LoginOTP(signature string, code string) error {
 	user, exist := loginToken[signature]
-	if !exist {
-		return errors.New("invalid request")
-	}
+	if !exist { return errors.New("Invalid request") }
 	if !totp.Validate(code, user.Secret) {
-		return errors.New("wrong code")
+		return errors.New("Invalid 2FA answer")
 	}
 	user.CreateSession(signature)
 	delete(loginToken, signature)

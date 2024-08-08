@@ -26,5 +26,8 @@
 		</tr>
 {{end}}
 	</table>
+{{if .Error}}
+	<p>{{.Error}}</p>
+{{end}}
 	<input class="btn" type="submit" value="Register">
 </form>

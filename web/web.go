@@ -112,12 +112,14 @@ func renderCustom(c echo.Context, template string, data any,
 		Title		string
 		CSRF		string
 		IsConnected	bool
+		Registration	bool
 		User		db.User
 	}{
 		Navs:		navs,
 		Title:		config.Cfg.Title,
 		CSRF:		csrf.Token(user.Signature),
 		IsConnected:	err == nil,
+		Registration:	config.Cfg.Users.Registration,
 		User:		user,
 	}
 	err = templates.Lookup("header").Execute(w, header)

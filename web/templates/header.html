@@ -34,8 +34,8 @@
 				</p>
 			{{else}}
 				<p>
-					<a href="/login">Login</a> | 
-					<a href="/register">Register</a>
+					<a href="/login">Login</a>
+					{{if .Registration}}| <a href="/register">Register</a>{{end}}
 				</p>
 			{{end}}
 			</div>

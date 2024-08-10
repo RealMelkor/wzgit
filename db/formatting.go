@@ -111,26 +111,32 @@ func isNameValid(name string) error {
 	return nil
 }
 
+var blacklisted = map[string]bool{
+	"anon": true,
+	"root": true,
+	"account": true,
+	"public": true,
+	"login": true,
+	"register": true,
+	"captcha": true,
+	"static": true,
+}
+
 func isUsernameValid(name string) error {
-	if name == "anon" || name == "root" ||
-			name == "account" || name == "public" {
-		return errors.New("blacklisted username")
-	}
+	if blacklisted[name] { return errors.New("blacklisted username") }
 	if err := isNameValid(name); err != nil { return err }
 	for _, c := range name {
-		if c > unicode.MaxASCII ||
-		   (!unicode.IsLetter(c) && !unicode.IsNumber(c)) {
-			return errors.New("your name contains " +
-					  "invalid characters")
+		if c > unicode.MaxASCII || (!unicode.IsLetter(c) &&
+				!unicode.IsNumber(c)) {
+			return errors.New(
+				"your name contains invalid characters")
 		}
 	}
 	return nil
 }
 
 func isGroupNameValid(name string) (error) {
-	if err := isNameValid(name); err != nil {
-		return err
-	}
+	if err := isNameValid(name); err != nil { return err }
 	for _, c := range name {
 		if c > unicode.MaxASCII ||
 		   (!unicode.IsLetter(c) && !unicode.IsNumber(c) &&
@@ -143,9 +149,7 @@ func isGroupNameValid(name string) (error) {
 }
 
 func isRepoNameValid(name string) (error) {
-	if err := isNameValid(name); err != nil {
-		return err
-	}
+	if err := isNameValid(name); err != nil { return err }
 	for _, c := range name {
 		if c > unicode.MaxASCII ||
 		   (!unicode.IsLetter(c) && !unicode.IsNumber(c) &&

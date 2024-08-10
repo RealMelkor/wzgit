@@ -8,6 +8,7 @@ import (
 	"time"
 	"log"
 	"strings"
+	"net/url"
 
         "github.com/tdewolff/minify/v2"
         "github.com/tdewolff/minify/v2/css"
@@ -175,9 +176,7 @@ func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 		t2 := time.Now()
 		r := c.Request()
 		realIP := r.Header.Get("X-Real-IP")
-		if realIP == "" {
-			realIP = r.RemoteAddr
-		}
+		if realIP == "" { realIP = r.RemoteAddr }
 		log.Println("["+realIP+"]["+r.Method+"]",
 			    r.URL.String(), t2.Sub(t1))
 		return err
@@ -191,6 +190,25 @@ func Err(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.String(http.StatusOK, err.Error())
 		}
 		return nil
+	}
+}
+
+func IgnoreCase(next echo.HandlerFunc) echo.HandlerFunc {
+	return func (c echo.Context) error {
+		if c.Param("user") == "" { return next(c) }
+		user, err := db.GetPublicUser(c.Param("user"))
+		if err != nil { return err }
+		n := strings.Replace(c.Request().URL.Path, c.Param("user"),
+					user.Name, 1)
+		u, err := url.Parse(n)
+		if err != nil { return err }
+		c.Request().URL = u
+		c.Request().RequestURI = u.RequestURI()
+		c.SetParamNames(append([]string{"user"},
+				c.ParamNames()...)...)
+		c.SetParamValues(append([]string{user.Name},
+				c.ParamValues()...)...)
+		return next(c)
 	}
 }
 
@@ -229,25 +247,28 @@ func Listen() error {
 
 	// repository settings
 	e.GET("/:user/:repo/:csrf/togglepublic", acc(TogglePublic))
-	e.POST("/:user/:repo/:csrf/chname", acc(ChangeRepoName))
-	e.POST("/:user/:repo/:csrf/chdesc", acc(ChangeRepoDesc))
+	e.POST("/:user/:repo/:csrf/chname",
+		acc(catch(ChangeRepoName, "repo_error", "..")))
+	e.POST("/:user/:repo/:csrf/chdesc",
+		acc(catch(ChangeRepoDesc, "repo_error", "..")))
 	e.GET("/:user/:repo/:csrf/delete", acc(DeleteRepo))
 
 	// access management
-	e.GET("/:u/:repo/access", acc(ShowAccess))
-	e.POST("/:u/:repo/access/:csrf/add",
+	e.GET("/:user/:repo/access", acc(ShowAccess))
+	e.POST("/:user/:repo/access/:csrf/add",
 		acc(catch(AddUserAccess, "access_user_error", "..")))
-	e.POST("/:u/:repo/access/:csrf/addg",
+	e.POST("/:user/:repo/access/:csrf/addg",
 		acc(catch(AddGroupAccess, "access_group_error", "..")))
-	e.GET("/:u/:repo/access/:user/:csrf/first", acc(UserAccessFirstOption))
-	e.GET("/:u/:repo/access/:user/:csrf/second",
+	e.GET("/:user/:repo/access/:member/:csrf/first",
+		acc(UserAccessFirstOption))
+	e.GET("/:user/:repo/access/:member/:csrf/second",
 		acc(UserAccessSecondOption))
-	e.GET("/:u/:repo/access/:group/g/:csrf/first",
+	e.GET("/:user/:repo/access/:group/g/:csrf/first",
 		acc(GroupAccessFirstOption))
-	e.GET("/:u/:repo/access/:group/g/:csrf/second",
+	e.GET("/:user/:repo/access/:group/g/:csrf/second",
 		acc(GroupAccessSecondOption))
-	e.GET("/:u/:repo/access/:user/:csrf/kick", acc(RemoveUserAccess))
-	e.GET("/:u/:repo/access/:group/g/:csrf/kick", acc(RemoveGroupAccess))
+	e.GET("/:user/:repo/access/:member/:csrf/kick", acc(RemoveUserAccess))
+	e.GET("/:user/:repo/access/:group/g/:csrf/kick", acc(RemoveGroupAccess))
 
 	// user page
 	e.POST("/account/:csrf/chdesc", acc(ChangeDesc))
@@ -260,7 +281,8 @@ func Listen() error {
 	e.GET("/account/otp/:csrf/qr", acc(CreateTOTP))
 	e.POST("/account/otp/:csrf/confirm",
 		acc(catch(ConfirmTOTP, "otp_error", "..")))
-	e.POST("/account/otp/:csrf/rm", acc(RemoveTOTP))
+	e.POST("/account/otp/:csrf/rm",
+		acc(catch(RemoveTOTP, "otp_error", "..")))
 	// token
 	e.GET("/account/token", acc(ShowTokens))
 	e.GET("/account/token/:csrf/new", acc(CreateWriteToken))
@@ -311,6 +333,7 @@ func Listen() error {
 
 	e.Use(Logger)
 	e.Use(Err)
+	e.Use(IgnoreCase)
 
 	return e.Start(config.Cfg.Web.Host)
 }

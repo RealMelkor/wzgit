@@ -22,6 +22,7 @@
 	<input class="field" type="text" name="desc">
 	<input class="btn" type="submit" value="Update">
 </form>
+<p>{{.User.GetOnce "repo_error"}}</p>
 <p><a href="{{$prefix}}/{{.CSRF}}/togglepublic">
 	Make the repository {{if .Public}}private{{else}}public{{end}}
 </a></p>

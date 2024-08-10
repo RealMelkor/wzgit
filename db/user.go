@@ -224,14 +224,10 @@ func FetchUser(username string, signature string) (User, error) {
 	query := `SELECT userID, name, description, creation, secret, securegit
 			FROM user WHERE UPPER(name) LIKE UPPER(?)`
 	rows, err := db.Query(query, username)
-	if err != nil {
-		return User{}, err
-	}
+	if err != nil { return User{}, err }
 	defer rows.Close()
 	next := rows.Next()
-	if !next {
-		return User{}, errors.New("User not found")
-	}
+	if !next { return User{}, errors.New("User not found") }
 	var u = User{}
 	err = rows.Scan(&u.ID,
 			&u.Name,
@@ -239,9 +235,7 @@ func FetchUser(username string, signature string) (User, error) {
 			&u.Registration,
 			&u.Secret,
 			&u.SecureGit)
-	if err != nil {
-		return User{}, err
-	}
+	if err != nil { return User{}, err }
 	u.Connection = time.Now()
 	u.Signature = signature
 	return u, nil
@@ -268,9 +262,7 @@ func CheckAuth(username string, password string) error {
 func Register(username string, password string) error {
 
 	if !config.Cfg.Ldap.Enabled {
-		if err := isPasswordValid(password); err != nil {
-			return err
-		}
+		if err := isPasswordValid(password); err != nil { return err }
 	}
 
 	if err := isUsernameValid(username); err != nil { return err }
@@ -278,10 +270,7 @@ func Register(username string, password string) error {
 
 	if !config.Cfg.Ldap.Enabled {
 		hash, err := hashPassword(password)
-		if err != nil {
-			return err
-		}
-
+		if err != nil { return err }
 		_, err = db.Exec("INSERT INTO user(name,password,creation) " +
 				 "VALUES(?, ?, " + unixTime + ");",
 				 username, hash)

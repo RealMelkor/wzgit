@@ -7,6 +7,7 @@ import (
 	"wzgit/access"
 	"time"
 
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -90,13 +91,35 @@ func Register(username string, password string, ip string) error {
 	return db.Register(username, password)
 }
 
+var options = totp.ValidateOpts{
+	Algorithm: otp.AlgorithmSHA512,
+	Period: 30,
+	Digits: 6,
+}
+
 func LoginOTP(signature string, code string) error {
 	user, exist := loginToken[signature]
 	if !exist { return errors.New("Invalid request") }
-	if !totp.Validate(code, user.Secret) {
-		return errors.New("Invalid 2FA answer")
-	}
+	if err := CheckOTP(user.Secret, code); err != nil { return err }
 	user.CreateSession(signature)
 	delete(loginToken, signature)
 	return nil
+}
+
+func CheckOTP(key string, code string) error {
+	ok, err := totp.ValidateCustom(code, key, time.Now(), options)
+	if err != nil { return err }
+	if !ok { return errors.New("Invalid 2FA answer") }
+	return nil
+}
+
+func GenerateOTP(username string) (*otp.Key, error) {
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer: config.Cfg.Title,
+		AccountName: username,
+		Algorithm: options.Algorithm,
+		Digits: options.Digits,
+		Period: options.Period,
+	})
+	return key, err
 }

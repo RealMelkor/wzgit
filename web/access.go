@@ -9,7 +9,7 @@ import (
 
 func accessRedirect(c echo.Context) error {
 	return c.Redirect(http.StatusFound,
-		"/account/repo/" + c.Param("repo") + "/access")
+		"/" + c.Param("user") + "/" + c.Param("repo") + "/access")
 }
 
 func privilegeUpdate(privilege int, first bool) int {
@@ -83,7 +83,8 @@ func changeUserAccess(owner db.User, repository string,
 }
 
 func userAccessOption(c echo.Context, user db.User, first bool) error {
-	err := changeUserAccess(user, c.Param("repo"), c.Param("user"), first)
+	err := changeUserAccess(user, c.Param("repo"),
+				c.Param("member"), first)
 	if err != nil { return err }
 	return accessRedirect(c)
 }
@@ -113,7 +114,7 @@ func AddGroupAccess(c echo.Context, user db.User) error {
 }
 
 func RemoveUserAccess(c echo.Context, user db.User) error {
-	userID, err := db.GetUserID(c.Param("user"))
+	userID, err := db.GetUserID(c.Param("member"))
 	if err != nil { return err }
 	repo, err := user.GetRepo(c.Param("repo"))
 	err = user.RemoveUserAccess(repo, userID)

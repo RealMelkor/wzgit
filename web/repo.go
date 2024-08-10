@@ -68,18 +68,16 @@ func RepoFile(c echo.Context, user db.User) error {
 }
 
 func TogglePublic(c echo.Context, user db.User) error {
-	if err := user.TogglePublic(c.Param("repo")); err != nil {
-		return err
-	}
+	if err := user.TogglePublic(c.Param("repo")); err != nil { return err }
 	return redirect(c, user, c.Param("repo"))
 }
 
 func ChangeRepoName(c echo.Context, user db.User) error {
 	newname := c.Request().PostFormValue("name")
 	// should check if repo exist and if the new name is available
-	err := repo.ChangeRepoDir(c.Param("repo"), user.Name, newname)
+	err := user.ChangeRepoName(c.Param("repo"), newname)
 	if err != nil { return err }
-	err = user.ChangeRepoName(c.Param("repo"), newname)
+	err = repo.ChangeRepoDir(c.Param("repo"), user.Name, newname)
 	if err != nil { return err }
 	return redirect(c, user, newname)
 }

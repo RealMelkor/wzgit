@@ -22,7 +22,7 @@ func (user *User) repoAlreadyExist(repo string) error {
 }
 
 func (user User) CreateRepo(repo string) error {
-	if err := isRepoNameValid(repo); err != nil {
+	if err := IsRepoNameValid(repo); err != nil {
 		return err
 	}
 
@@ -62,7 +62,7 @@ func GetRepoID(repo string, userID int) (int, error) {
 }
 
 func (user User) ChangeRepoName(name string, newname string) error {
-	err := isRepoNameValid(newname)
+	err := IsRepoNameValid(newname)
 	if err != nil {
 		return err
 	}

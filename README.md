@@ -14,6 +14,7 @@ A minimalist software forge
 * User groups
 * Privilege system for read/write access
 * Support for sqlite and mysql databases
+* No javascript
 
 ## Requirements
 
@@ -54,10 +55,10 @@ systemctl enable --now wzgit
 
 ## Demo
 
-You can try a public instance of wzgit at this address: [https://git.rmf-dev.com][0]
+You can try a [public instance of wzgit][0]
 
 ## Contact
 
-For inquiries about this software or the instance running at https://git.rmf-dev.com, you can contact the main maintainer of this project at : inquiry@rmf-dev.com
+For inquiries about this software or the instance running at https://wz.rmf-dev.com, you can contact the main maintainer of this project at : inquiry@rmf-dev.com
 
-[0]: https://git.rmf-dev.com
+[0]: https://wz.rmf-dev.com

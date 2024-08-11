@@ -27,6 +27,12 @@ func Decrease() {
 	}
 }
 
+
+func can(attemps *map[string]int, key string, max int) bool {
+	value, exist := (*attemps)[key]
+	return !exist || value < max
+}
+
 func try(attemps *map[string]int, key string, max int) bool {
 	value, exist := (*attemps)[key]
 	if exist {
@@ -69,26 +75,26 @@ func Connect(username string, password string,
 		user.CreateSession(signature)
 		return nil
 	}
-	if !config.Cfg.Ldap.Enabled {
-		return err
-	}
+	if !config.Cfg.Ldap.Enabled { return err }
 	err = db.Register(username, "")
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 	user, err = db.FetchUser(username, signature)
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
 	user.CreateSession(signature)
 	return nil
 }
 
 func Register(username string, password string, ip string) error {
-	if try(&registrationAttempts, ip, config.Cfg.Protection.Registration) {
-		return errors.New("Too many registration attempts")
+	const tooMany = "Too many registration attempts"
+	if !can(&registrationAttempts, ip, config.Cfg.Protection.Registration) {
+		return errors.New(tooMany)
 	}
-	return db.Register(username, password)
+	err := db.Register(username, password)
+	if err != nil { return err }
+	if try(&registrationAttempts, ip, config.Cfg.Protection.Registration) {
+		return errors.New(tooMany)
+	}
+	return nil
 }
 
 var options = totp.ValidateOpts{

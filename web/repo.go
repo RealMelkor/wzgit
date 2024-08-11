@@ -5,6 +5,7 @@ import (
 	"strings"
 	"net/http"
 	"io"
+	"errors"
 	"bytes"
 
 	"wzgit/db"
@@ -73,12 +74,20 @@ func TogglePublic(c echo.Context, user db.User) error {
 }
 
 func ChangeRepoName(c echo.Context, user db.User) error {
+	oldname := c.Param("repo")
 	newname := c.Request().PostFormValue("name")
-	// should check if repo exist and if the new name is available
-	err := user.ChangeRepoName(c.Param("repo"), newname)
+	if err := db.IsRepoNameValid(newname); err != nil { return err }
+	if id, _ := db.GetRepoID(newname, user.ID); id != -1 {
+		return errors.New(
+			"One of your repositories is already named " + newname)
+	}
+	err := user.ChangeRepoName(oldname, newname)
 	if err != nil { return err }
-	err = repo.ChangeRepoDir(c.Param("repo"), user.Name, newname)
-	if err != nil { return err }
+	err = repo.ChangeRepoDir(oldname, user.Name, newname)
+	if err != nil {
+		user.ChangeRepoName(newname, oldname)
+		return err
+	}
 	return redirect(c, user, newname)
 }
 

@@ -212,6 +212,29 @@ func IgnoreCase(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func LimitFormValues(next echo.HandlerFunc) echo.HandlerFunc {
+	return func (c echo.Context) error {
+		if c.Request().Method != "POST" { return next(c) }
+		err := c.Request().ParseForm()
+		if err != nil { return err }
+		for _, v := range c.Request().PostForm {
+			if len(v[0]) > 1024 {
+				return errors.New("Invalid values")
+			}
+		}
+		return next(c)
+	}
+}
+
+func LimitURI(next echo.HandlerFunc) echo.HandlerFunc {
+	return func (c echo.Context) error {
+		if len(c.Request().RequestURI) > 8192 {
+			return errors.New("URI too long")
+		}
+		return next(c)
+	}
+}
+
 func found(dst string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return c.Redirect(http.StatusFound, dst)
@@ -333,6 +356,8 @@ func Listen() error {
 
 	e.Use(Logger)
 	e.Use(Err)
+	e.Use(LimitURI)
+	e.Use(LimitFormValues)
 	e.Use(IgnoreCase)
 
 	return e.Start(config.Cfg.Web.Host)

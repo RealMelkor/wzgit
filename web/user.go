@@ -67,5 +67,5 @@ func Disconnect(c echo.Context, user db.User) error {
 
 func DisconnectAll(c echo.Context, user db.User) error {
 	if err := user.DisconnectAll(); err != nil { return err }
-	return redirect(c, user, "")
+	return c.Redirect(http.StatusFound, "/account")
 }

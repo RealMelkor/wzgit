@@ -195,11 +195,13 @@ func Err(next echo.HandlerFunc) echo.HandlerFunc {
 
 func IgnoreCase(next echo.HandlerFunc) echo.HandlerFunc {
 	return func (c echo.Context) error {
-		if c.Param("user") == "" { return next(c) }
-		user, err := db.GetPublicUser(c.Param("user"))
+		name := c.Param("user")
+		if name == "" { return next(c) }
+		user, err := db.GetPublicUser(name)
 		if err != nil { return err }
-		n := strings.Replace(c.Request().URL.Path, c.Param("user"),
-					user.Name, 1)
+		if user.Name == name { return next(c) }
+		if err != nil { return err }
+		n := strings.Replace(c.Request().URL.Path, name, user.Name, 1)
 		u, err := url.Parse(n)
 		if err != nil { return err }
 		c.Request().URL = u
@@ -215,6 +217,9 @@ func IgnoreCase(next echo.HandlerFunc) echo.HandlerFunc {
 func LimitFormValues(next echo.HandlerFunc) echo.HandlerFunc {
 	return func (c echo.Context) error {
 		if c.Request().Method != "POST" { return next(c) }
+		if strings.Contains(c.Request().RequestURI, "/info/refs") {
+			return next(c)
+		}
 		err := c.Request().ParseForm()
 		if err != nil { return err }
 		for _, v := range c.Request().PostForm {

@@ -352,6 +352,7 @@ func showRepo(c echo.Context, user db.User, page int) (error) {
 		content, err = showRepoLicense(name, author)
 		contentType = "license"
 	case pageReadme:
+		content = true
 		contentType = "readme"
 	}
 	if err != nil { return err }

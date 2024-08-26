@@ -143,7 +143,14 @@ func getUser(c echo.Context) (db.User, error) {
 	user, exist := db.GetUser(cookie.Value)
 	if !exist { return db.User{}, errors.New("user not found") }
 	renew := c.Request().Method == "POST"
-	if err := csrf.Handle(user, c.Param("csrf"), renew); err != nil {
+	token := c.Param("csrf")
+	for _, v := range c.ParamNames() {
+		if v == "csrf" {
+			if token == "" { token = "empty" }
+			break
+		}
+	}
+	if err := csrf.Handle(user, token, renew); err != nil {
 		return db.User{}, err
 	}
 	return user, nil
@@ -200,7 +207,6 @@ func IgnoreCase(next echo.HandlerFunc) echo.HandlerFunc {
 		user, err := db.GetPublicUser(name)
 		if err != nil { return err }
 		if user.Name == name { return next(c) }
-		if err != nil { return err }
 		n := strings.Replace(c.Request().URL.Path, name, user.Name, 1)
 		u, err := url.Parse(n)
 		if err != nil { return err }

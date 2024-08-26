@@ -430,7 +430,7 @@ func PublicAccount(c echo.Context) error {
 		Name: user.Name,
 		Description: user.Description,
 		Repositories: repos,
-		CSRF: csrf.Token(user.Signature),
+		CSRF: csrf.Token(u.Signature),
 	}
 	return render(c, "user.html", data)
 }

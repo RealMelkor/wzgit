@@ -3,6 +3,7 @@ package repo
 import (
 	"errors"
 	"wzgit/db"
+	"wzgit/access"
 	"io"
 	"os"
 	"time"
@@ -126,10 +127,16 @@ func GetFile(name string, username string, file string) (*object.File, error) {
 }
 
 func GetPublicFile(name string, username string,
-			hash string) (io.ReadCloser, error) {
+			hash string, sig string) (io.ReadCloser, error) {
 	public, err := db.IsRepoPublic(name, username)
 	if err != nil { return nil, err }
-	if !public { return nil, errors.New("repository is private") }
+	if !public {
+		err := errors.New("repository is private")
+		user, b := db.GetUser(sig)
+		if !b { return nil, err }
+		err = access.HasReadAccess(name, username, user.Name)
+		if err != nil { return nil, err }
+	}
 	repo, err := git.PlainOpen(rootPath + "/" + username + "/" + name)
 	if err != nil { return nil, err }
 	file, err := repo.BlobObject(plumbing.NewHash(hash))

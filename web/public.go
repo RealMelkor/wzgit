@@ -12,8 +12,9 @@ func PublicFile(c echo.Context) error {
 }
 
 func PublicFileContent(c echo.Context) error {
+	sig, _ := c.Cookie("auth_id")
 	out, err := repo.GetPublicFile(
-		c.Param("repo"), c.Param("user"), c.Param("blob"))
+		c.Param("repo"), c.Param("user"), c.Param("blob"), sig.Value)
 	if err != nil { return err }
 	defer out.Close()
 	c.Response().WriteHeader(http.StatusOK)

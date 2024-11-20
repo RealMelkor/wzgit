@@ -16,3 +16,24 @@
 {{if .Sessions}}
 <p><a href="/account/{{.CSRF}}/disconnectall">Disconnect other sessions [{{.Sessions}}]</a></p>
 {{end}}
+<h3>Repositories</h3>
+<form action="/account/{{.CSRF}}/addrepo" method="POST">
+        <span style="white-space: nowrap">Create a new repository:</span>
+        <input class="field" type="text" name="repo" required="required">
+        <input class="btn" type="submit" value="Create">
+</form>
+{{ range .Repositories -}}
+<li>
+        <p>
+                <a href="/{{.Username}}/{{.Name}}">{{.Name}}</a>
+                {{if not (eq $.User.Name .Username)}}
+                - <a href="/{{.Username}}">{{.Username}}</a>
+                {{end}}
+        </p>
+        {{if .Description -}}
+        <p>{{ .Description }}</p>
+        {{end -}}
+</li>
+{{ end -}}
+</ul>
+

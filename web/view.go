@@ -96,32 +96,25 @@ func ShowIndex(c echo.Context, isConnected bool) (error) {
 }
 
 func ShowAccount(c echo.Context, user db.User) (error) {
-	repoNames := []string{}
 	repos, err := user.GetRepos(false)
-	if err != nil {
-		repoNames = []string{"Failed to load repositories"}
-		log.Println(err)
-	} else {
-		for _, repo := range repos {
-			repoNames = append(repoNames, repo.Name)
-		}
-	}
+	if err != nil { return err }
 	accessRepos, err := user.HasReadAccessTo()
 	sessions, err := user.GetSessionsCount()
 	if err != nil { return err }
+	repos = append(repos, accessRepos...)
 	if sessions == 1 {
 		sessions = 0
 	}
 	data := struct {
 		User db.User
-		Repositories []string
+		Repositories []db.Repo
 		RepositoriesAccess []db.Repo
 		Sessions int
 		CSRF string
 		LDAP bool
 	}{
 		User: user,
-		Repositories: repoNames,
+		Repositories: repos,
 		RepositoriesAccess: accessRepos,
 		Sessions: sessions,
 		CSRF: csrf.Token(user.Signature),
